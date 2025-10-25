@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="theme-color" content="#FFF9F2" />
+  <title>Timeboxing Planner</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+  <style>
+    :root {
+      --bg: #fffaf2;
+      --accent: #4c6ef5;
+      --core: #fff2b2;
+      --text: #1c1c1c;
+      --done: #e9ecef;
+      --border: #dee2e6;
+      --radius: 14px;
+    }
+    * {
+      box-sizing: border-box;
+      font-family: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      word-spacing: normal;
+      letter-spacing: -0.3px;
+      -webkit-font-smoothing: antialiased;
+      color: var(--text);
+      touch-action: manipulation;
+    }
+    body {
+      background: var(--bg);
+      margin: 0;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+    }
+    .wrap {
+      width: 100%;
+      max-width: 720px;
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: 0 6px 20px rgba(0,0,0,.08);
+      padding: 20px;
+    }
+
+    /* 상단 */
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .today {
+      font-weight: 700;
+      font-size: 18px;
+      white-space: nowrap;
+    }
+    .btn {
+      cursor: pointer;
+      border: none;
+      border-radius: 10px;
+      padding: 8px 14px;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+      font-size: 15px;
+      line-height: 1;
+      text-align: center;
+      min-width: 90px;
+    }
+
+    /* 제목 */
+    h2 {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 14px 0 8px;
+      color: var(--accent);
+      font-size: 20px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    /* 리스트 */
+    .list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 6px;
+    }
+    .item {
+      background: #f3f6ff;
+      border: 1px dashed #b6c6ff;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: grab;
+    }
+    .item:active { cursor: grabbing; }
+
+    /* 입력 */
+    .adder {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .adder input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #d0d7e2;
+      font-size: 15px;
+    }
+
+    /* 타임라인 설정 (기상/취침 2줄 배치) */
+    .time-setup {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .time-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .time-row label {
+      width: 40px;
+      font-weight: 600;
+      font-size: 15px;
+    }
+    .time-row select {
+      flex: 1;
+      min-width: 120px;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-size: 15px;
+    }
+
+    /* 타임라인 */
+    .timegrid {
+      display: grid;
+      gap: 8px;
+    }
+    .slot {
+      display: grid;
+      grid-template-columns: 86px 1fr auto;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 8px;
+      position: relative;
+    }
+    .slot .time {
+      font-weight: 600;
+      font-size: 15px;
+      white-space: nowrap;
+    }
+    .slot input {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      font-size: 15px;
+    }
+    .slot.done {
+      background: var(--done);
+    }
+    .slot.done input {
+      text-decoration: line-through;
+      color: #777;
+    }
+    .slot.highlight {
+      background: var(--core);
+    }
+    .slot.over {
+      border: 2px dashed var(--accent);
+    }
+
+    /* 완료 버튼 */
+    .strike {
+      background: #ccc;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    /* 안내문 */
+    .tip {
+      font-size: 13px;
+      color: #777;
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+
+    /* 모바일 최적화 */
+    @media (max-width: 600px) {
+      .wrap { padding: 12px; }
+      .top { justify-content: center; gap: 6px; }
+      .btn { font-size: 14px; padding: 7px 10px; min-width: auto; }
+      h2 { font-size: 18px; }
+      .adder input, .item, .slot input { font-size: 14px; }
+      .slot { grid-template-columns: 70px 1fr 50px; }
+      .slot .time { font-size: 14px; }
+      .strike { padding: 4px 8px; font-size: 12px; }
+      .time-row label { width: 36px; font-size: 14px; }
+      .time-row select { font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="today" id="today"></div>
+      <button id="pdf" class="btn">PDF 다운</button>
+      <button id="clear" class="btn">오늘 비우기</button>
+    </div>
+
+    <h2>Brain Dump</h2>
+    <div class="adder">
+      <input id="bd-input" placeholder="할 일을 입력하세요" />
+      <button id="bd-add" class="btn">+</button>
+    </div>
+    <ul id="bd-list" class="list"></ul>
+
+    <h2>Core 3</h2>
+    <div class="adder">
+      <input id="c3-input" placeholder="핵심 3가지를 입력하세요" />
+      <button id="c3-add" class="btn">+</button>
+    </div>
+    <ul id="c3-list" class="list"></ul>
+
+    <p class="tip">Tip : 항목을 드래그해 시간칸에 놓으면 자동 배치됩니다.<br>(더블탭/더블클릭으로 슬롯 초기화 & 원래 위치 복귀)</p>
+
+    <h2>타임라인</h2>
+    <div class="time-setup">
+      <div class="time-row">
+        <label>기상</label>
+        <select id="start"></select>
+      </div>
+      <div class="time-row">
+        <label>취침</label>
+        <select id="end"></select>
+        <button id="build" class="btn" style="margin-left: auto;">적용</button>
+      </div>
+    </div>
+    <div id="timeline" class="timegrid"></div>
+  </div>
+
+  <script>
+    // 오늘 날짜
+    const todayEl = document.getElementById('today');
+    const now = new Date(), days = ['일','월','화','수','목','금','토'];
+    todayEl.textContent = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} (${days[now.getDay()]})`;
+
+    // 요소
+    const bdInput = document.getElementById('bd-input'), bdAdd = document.getElementById('bd-add'), bdList = document.getElementById('bd-list');
+    const c3Input = document.getElementById('c3-input'), c3Add = document.getElementById('c3-add'), c3List = document.getElementById('c3-list');
+    const startSelect = document.getElementById('start'), endSelect = document.getElementById('end'), buildBtn = document.getElementById('build');
+    const timeline = document.getElementById('timeline');
+    const clearBtn = document.getElementById('clear');
+    const pdfBtn = document.getElementById('pdf');
+
+    const STORAGE_KEY = 'timebox-planner';
+    let slots = [];
+    let draggedItem = null;
+
+    // 시간 셀렉트 초기화
+    function initTimeSelects() {
+      const times = [];
+      times.push({val: 0, label: '자정 (오전 12:00)'});
+      for (let h = 1; h < 12; h++) times.push({val: h, label: `오전 ${h}:00`});
+      times.push({val: 12, label: '정오 (오후 12:00)'});
+      for (let h = 1; h < 12; h++) times.push({val: 12 + h, label: `오후 ${h}:00`});
+      times.push({val: 24, label: '자정 (오전 12:00, 다음 날)'});
+
+      times.forEach(t => {
+        const opt = `<option value="${t.val}">${t.label}</option>`;
+        startSelect.insertAdjacentHTML('beforeend', opt);
+        endSelect.insertAdjacentHTML('beforeend', opt);
+      });
+      startSelect.value = 7;
+      endSelect.value = 22;
+    }
+
+    // 타임라인 생성
+    function buildTimeline() {
+      const start = parseInt(startSelect.value);
+      const end = parseInt(endSelect.value);
+      if (end <= start) return alert('취침 시간이 기상 시간보다 빠를 수 없습니다.');
+
+      timeline.innerHTML = '';
+      slots = [];
+
+      for (let i = start; i < end; i++) {
+        const h = i % 24;
+        const ampm = h < 12 ? '오전' : '오후';
+        const hour = h === 0 ? 12 : h > 12 ? h - 12 : h;
+        let timeStr = `${ampm} ${hour}:00`;
+        if (i % 24 === 0) timeStr = '자정 (오전 12:00)';
+        if (i % 24 === 12) timeStr = '정오 (오후 12:00)';
+
+        const slot = document.createElement('div');
+        slot.className = 'slot';
+        slot.dataset.index = i;
+        slot.innerHTML = `
+          <div class="time">${timeStr}</div>
+          <input type="text" placeholder="여기에 드래그" readonly />
+          <button class="strike">완료</button>
+        `;
+        timeline.appendChild(slot);
+        slots.push(slot);
+
+        slot.addEventListener('dblclick', handleSlotDblClick);
+        slot.addEventListener('touchend', handleTouchEnd);
+
+        slot.querySelector('.strike').addEventListener('click', () => {
+          slot.classList.toggle('done');
+          saveData();
+        });
+
+        ['dragover', 'dragenter'].forEach(ev => {
+          slot.addEventListener(ev, e => { e.preventDefault(); slot.classList.add('over'); });
+        });
+        ['dragleave', 'drop'].forEach(ev => {
+          slot.addEventListener(ev, () => slot.classList.remove('over'));
+        });
+        slot.addEventListener('drop', e => {
+          e.preventDefault();
+          slot.classList.remove('over');
+          if (draggedItem) {
+            const text = draggedItem.querySelector('.txt').textContent;
+            const type = draggedItem.dataset.type;
+            slot.querySelector('input').value = text;
+            slot.dataset.type = type;
+            if (type === 'core3') slot.classList.add('highlight');
+            draggedItem.remove();
+            saveData();
+          }
+        });
+      }
+    }
+
+    let lastTouch = 0;
+    function handleTouchEnd(e) {
+      const now = new Date().getTime();
+      if (now - lastTouch < 300) handleSlotDblClick(e);
+      lastTouch = now;
+    }
+
+    function handleSlotDblClick(e) {
+      const slot = e.currentTarget;
+      const text = slot.querySelector('input').value;
+      const type = slot.dataset.type;
+      if (!text || !type) return;
+
+      const list = type === 'bd' ? bdList : c3List;
+      const li = document.createElement('li');
+      li.className = 'item'; li.draggable = true; li.dataset.type = type;
+      li.innerHTML = `<span class="txt">${text}</span><button class="del">x</button>`;
+      list.appendChild(li);
+      setupItem(li);
+
+      slot.querySelector('input').value = '';
+      slot.classList.remove('done', 'highlight');
+      slot.dataset.type = '';
+      saveData();
+    }
+
+    function addItem(input, list, type) {
+      const text = input.value.trim();
+      if (!text) return;
+      const li = document.createElement('li');
+      li.className = 'item'; li.draggable = true; li.dataset.type = type;
+      li.innerHTML = `<span class="txt">${text}</span><button class="del">x</button>`;
+      list.appendChild(li);
+      input.value = '';
+      setupItem(li);
+      saveData();
+    }
+
+    function handleDragStart(e) { draggedItem = this; setTimeout(() => this.style.display = 'none', 0); }
+    function handleDragEnd() { setTimeout(() => { if (draggedItem) draggedItem.style.display = ''; draggedItem = null; }, 0); }
+    function handleTouchStart(e) { draggedItem = this; this.style.opacity = '0.5'; }
+    function handleTouchMove(e) { e.preventDefault(); }
+    function handleTouchEndDrag() { this.style.opacity = '1'; draggedItem = null; }
+
+    function saveData() {
+      const data = {
+        bd: Array.from(bdList.children).map(li => ({text: li.querySelector('.txt').textContent, type: li.dataset.type})),
+        c3: Array.from(c3List.children).map(li => ({text: li.querySelector('.txt').textContent, type: li.dataset.type})),
+        timeline: slots.map(slot => ({
+          text: slot.querySelector('input').value,
+          done: slot.classList.contains('done'),
+          highlight: slot.classList.contains('highlight'),
+          type: slot.dataset.type || ''
+        })),
+        start: startSelect.value,
+        end: endSelect.value
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function loadData() {
+      const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      (data.bd || []).forEach(item => { const li = document.createElement('li'); li.className = 'item'; li.draggable = true; li.dataset.type = item.type; li.innerHTML = `<span class="txt">${item.text}</span><button class="del">x</button>`; bdList.appendChild(li); setupItem(li); });
+      (data.c3 || []).forEach(item => { const li = document.createElement('li'); li.className = 'item'; li.draggable = true; li.dataset.type = item.type; li.innerHTML = `<span class="txt">${item.text}</span><button class="del">x</button>`; c3List.appendChild(li); setupItem(li); });
+      if (data.start) startSelect.value = data.start;
+      if (data.end) endSelect.value = data.end;
+      buildTimeline();
+      if (data.timeline) {
+        data.timeline.forEach((item, i) => {
+          if (slots[i]) {
+            slots[i].querySelector('input').value = item.text;
+            if (item.done) slots[i].classList.add('done');
+            if (item.highlight) slots[i].classList.add('highlight');
+            slots[i].dataset.type = item.type;
+          }
+        });
+      }
+    }
+
+    function setupItem(li) {
+      li.addEventListener('dragstart', handleDragStart);
+      li.addEventListener('dragend', handleDragEnd);
+      li.addEventListener('touchstart', handleTouchStart);
+      li.addEventListener('touchmove', handleTouchMove);
+      li.addEventListener('touchend', handleTouchEndDrag);
+      li.querySelector('.del').addEventListener('click', () => { li.remove(); saveData(); });
+    }
+
+    pdfBtn.addEventListener('click', () => {
+      const opt = { margin: 1, filename: 'timebox-planner.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
+      html2pdf().set(opt).from(document.querySelector('.wrap')).save();
+    });
+
+    bdAdd.addEventListener('click', () => addItem(bdInput, bdList, 'bd'));
+    c3Add.addEventListener('click', () => addItem(c3Input, c3List, 'core3'));
+    buildBtn.addEventListener('click', buildTimeline);
+    clearBtn.addEventListener('click', () => { if (confirm('오늘 모든 데이터를 지우시겠습니까?')) { localStorage.removeItem(STORAGE_KEY); location.reload(); } });
+
+    [bdInput, c3Input].forEach(input => {
+      input.addEventListener('keypress', e => { if (e.key === 'Enter') { const btn = input === bdInput ? bdAdd : c3Add; btn.click(); } });
+    });
+
+    initTimeSelects();
+    loadData();
+  </script>
+</body>
+</html>
