@@ -12,16 +12,10 @@
   <meta name="msapplication-TileColor" content="#4c6ef5" />
 
   <title>타임박스 플래너</title>
-
-  <!-- PWA Manifest -->
   <link rel="manifest" href="manifest.json" />
-
-  <!-- 아이콘 (당신의 파일 2개만 사용) -->
   <link rel="icon" href="icon-192.png" sizes="192x192" />
   <link rel="icon" href="icon-512.png" sizes="512x512" />
   <link rel="apple-touch-icon" href="icon-512.png" />
-
-  <!-- 폰트 & PDF -->
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
 
@@ -83,8 +77,26 @@
     .slot.bd { background: var(--bd-color); }
     .slot.highlight { background: var(--core); }
     .slot.over { border: 2px dashed var(--accent); background: #f0f5ff; }
-    .strike { background: #ccc; border: none; border-radius: 6px; padding: 6px 0; font-weight: 600; cursor: pointer; font-size: 13px; min-width: 60px; text-align: center; }
+
+    /* 완료 버튼 고정 너비 */
+    .strike {
+      background: #ccc;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 13px;
+      width: 60px !important;
+      height: 32px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+    }
+
     .tip { font-size: 13px; color: #777; margin-top: 6px; line-height: 1.4; }
+
     @media (max-width: 600px) {
       .wrap { padding: 12px; }
       .top { justify-content: center; gap: 6px; }
@@ -93,7 +105,7 @@
       .adder input, .item, .slot input { font-size: 14px; }
       .slot { gap: 6px; }
       .slot .time { font-size: 14px; }
-      .strike { padding: 5px 0; font-size: 12px; min-width: 56px; }
+      .strike { width: 56px !important; height: 30px; font-size: 12px; }
       .time-group label { width: 36px; font-size: 14px; }
       .time-group select { font-size: 14px; padding: 6px; }
     }
@@ -147,12 +159,10 @@
   </div>
 
   <script>
-    // 오늘 날짜
     const todayEl = document.getElementById('today');
     const now = new Date(), days = ['일','월','화','수','목','금','토'];
     todayEl.textContent = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} (${days[now.getDay()]})`;
 
-    // 요소
     const bdInput = document.getElementById('bd-input'), bdAdd = document.getElementById('bd-add'), bdList = document.getElementById('bd-list');
     const c3Input = document.getElementById('c3-input'), c3Add = document.getElementById('c3-add'), c3List = document.getElementById('c3-list');
     const startAmpm = document.getElementById('start-ampm'), startHour = document.getElementById('start-hour');
@@ -168,7 +178,6 @@
     let currentDropTarget = null;
     let autoScrollInterval = null;
 
-    // 시간 셀렉트 초기화
     function initTimeSelects() {
       for (let h = 1; h <= 12; h++) {
         const opt = `<option value="${h}">${h}시</option>`;
@@ -181,7 +190,6 @@
       endAmpm.value = '오후';
     }
 
-    // 타임라인 생성
     function buildTimeline() {
       const sh = parseInt(startHour.value);
       const eh = parseInt(endHour.value);
@@ -324,9 +332,9 @@
       let startX, startY;
       li.addEventListener('touchstart', e => {
         draggedItem = li;
-        li, li.style.opacity = '0.5';
+        li.style.opacity = '0.5';  // 수정: 콤마 제거
         const touch = e.touches[0];
-        startX = touch.clientX;
+        startX = TOUCH.clientX;
         startY = touch.clientY;
       }, { passive: true });
 
@@ -418,7 +426,13 @@
     }
 
     pdfBtn.addEventListener('click', () => {
-      const opt = { margin: 1, filename: 'timebox-planner.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
+      const opt = {
+        margin: 0.5,
+        filename: 'timebox-planner.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 1.5, useCORS: true },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+      };
       html2pdf().set(opt).from(document.querySelector('.wrap')).save();
     });
 
