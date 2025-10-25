@@ -104,3 +104,18 @@ li.core3 {
 .timeline-slot.dragover {
   background: #dbeafe;
 }
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    gap: 0;
+  }
+  .left-panel, .right-panel {
+    padding: 12px;
+    box-shadow: none;
+    border-radius: 0;
+    margin-bottom: 16px;
+  }
+  .right-panel {
+    margin-bottom: 0;
+  }
+}
