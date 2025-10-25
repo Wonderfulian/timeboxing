@@ -104,18 +104,31 @@ li.core3 {
 .timeline-slot.dragover {
   background: #dbeafe;
 }
+
+/* 모바일 반응형 레이아웃 */
 @media (max-width: 768px) {
   .container {
     flex-direction: column;
     gap: 0;
+    max-width: 100%;
+    margin: 0;
   }
   .left-panel, .right-panel {
     padding: 12px;
     box-shadow: none;
     border-radius: 0;
     margin-bottom: 16px;
+    flex: unset;
+    width: 100%;
   }
   .right-panel {
     margin-bottom: 0;
+  }
+  .timeline-slot {
+    min-height: 36px;
+    padding: 6px;
+  }
+  button, input[type="text"] {
+    font-size: 1.07rem;
   }
 }
