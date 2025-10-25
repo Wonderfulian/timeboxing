@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>시간관리 앱</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container" id="app">
+    <div class="left-panel">
+      <div class="date-title">
+        <span id="today-date"></span>
+        <button id="clear-day">오늘 비우기</button>
+      </div>
+      <section id="brain-dump">
+        <h2>🧠 Brain Dump</h2>
+        <input type="text" id="brain-input" placeholder="할 일을 입력하고 Enter">
+        <button id="add-brain">추가</button>
+        <ul id="brain-list"></ul>
+      </section>
+      <section id="core3">
+        <h2>⭐ Core 3</h2>
+        <input type="text" id="core-input" placeholder="가장 중요한 3가지...">
+        <button id="add-core">추가</button>
+        <ul id="core-list"></ul>
+      </section>
+      <div class="tip">Tip : 드래그(모바일/PC) 또는 탭으로 시간에 배치하세요.</div>
+    </div>
+    <div class="right-panel">
+      <div class="timeline-header">
+        <h2>📅 타임라인</h2>
+        <div class="time-setting">
+          <label>기상
+            <select id="wake-ampm">
+              <option value="오전">오전</option>
+              <option value="오후">오후</option>
+            </select>
+            <select id="wake-hour"></select>
+          </label>
+          <label>취침
+            <select id="sleep-ampm">
+              <option value="오전">오전</option>
+              <option value="오후">오후</option>
+            </select>
+            <select id="sleep-hour"></select>
+          </label>
+          <button id="set-times">시간대 만들기</button>
+        </div>
+        <button id="save-pdf">PDF 저장</button>
+      </div>
+      <ul id="timeline-list"></ul>
+    </div>
+  </div>
+  <script src="app.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</body>
+</html>
