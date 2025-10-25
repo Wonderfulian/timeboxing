@@ -31,24 +31,18 @@
     <div class="right-panel">
       <div class="timeline-header">
         <h2>📅 타임라인</h2>
-        <div class="time-setting-row">
-          <div class="time-setting">
-            <label>기상
-              <select id="wake-ampm">
-                <option value="오전">오전</option>
-                <option value="오후">오후</option>
-              </select>
-              <select id="wake-hour"></select>
-            </label>
-            <label>취침
-              <select id="sleep-ampm">
-                <option value="오전">오전</option>
-                <option value="오후">오후</option>
-              </select>
-              <select id="sleep-hour"></select>
-            </label>
-            <button id="set-times">시간대 만들기</button>
-          </div>
+        <div class="time-setting">
+          <label>기상
+            <select id="wake-ampm"></select>
+            <select id="wake-hour"></select>
+          </label>
+          <label>취침
+            <select id="sleep-ampm"></select>
+            <select id="sleep-hour"></select>
+          </label>
+        </div>
+        <div class="time-action-row">
+          <button id="set-times">시간대 만들기</button>
           <button id="save-pdf">PDF 저장</button>
         </div>
       </div>

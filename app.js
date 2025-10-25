@@ -1,5 +1,38 @@
-// 예시: 기본동작 방지 및 타임라인 배치 로직
 window.addEventListener('DOMContentLoaded', function () {
+  // 오늘 날짜 표시
+  const today = new Date();
+  document.getElementById('today-date').textContent =
+    today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+
+  // 기상/취침 시간 select 옵션 생성
+  function fillTimeSelects() {
+    const ampmOpts = ['오전', '오후'];
+    const hourOpts = Array.from({ length: 12 }, (_, i) => i + 1);
+    const wakeAmpm = document.getElementById('wake-ampm');
+    const sleepAmpm = document.getElementById('sleep-ampm');
+    const wakeHour = document.getElementById('wake-hour');
+    const sleepHour = document.getElementById('sleep-hour');
+    [wakeAmpm, sleepAmpm].forEach(sel => {
+      sel.innerHTML = '';
+      ampmOpts.forEach(op => {
+        const o = document.createElement('option');
+        o.value = op;
+        o.textContent = op;
+        sel.appendChild(o);
+      });
+    });
+    [wakeHour, sleepHour].forEach(sel => {
+      sel.innerHTML = '';
+      hourOpts.forEach(op => {
+        const o = document.createElement('option');
+        o.value = op;
+        o.textContent = op + '시';
+        sel.appendChild(o);
+      });
+    });
+  }
+  fillTimeSelects();
+
   // 할 일 추가
   document.getElementById('add-brain').onclick = function () {
     const val = document.getElementById('brain-input').value.trim();
@@ -54,27 +87,48 @@ window.addEventListener('DOMContentLoaded', function () {
     };
   }
 
+  // 시간대 만들기
+  document.getElementById('set-times').onclick = function () {
+    const wakeAmpm = document.getElementById('wake-ampm').value;
+    const wakeHour = parseInt(document.getElementById('wake-hour').value, 10);
+    const sleepAmpm = document.getElementById('sleep-ampm').value;
+    const sleepHour = parseInt(document.getElementById('sleep-hour').value, 10);
+
+    // 오전/오후 → 24시간 변환
+    function to24(ampm, hour) {
+      if (ampm === '오전') {
+        return hour === 12 ? 0 : hour;
+      }
+      return hour === 12 ? 12 : hour + 12;
+    }
+    const start = to24(wakeAmpm, wakeHour);
+    const end = to24(sleepAmpm, sleepHour);
+
+    const ul = document.getElementById('timeline-list');
+    ul.innerHTML = '';
+    // 시간대 생성 (예: 30분 단위로)
+    if (isNaN(start) || isNaN(end) || start === end) {
+      ul.innerHTML = '<li>시간대를 올바르게 선택해 주세요!</li>';
+      return;
+    }
+    let cur = start;
+    while (true) {
+      const slot = document.createElement('li');
+      slot.className = 'timeline-slot';
+      const h = cur % 24;
+      const ampm = h < 12 ? '오전' : '오후';
+      const dispH = h === 0 ? 12 : (h > 12 ? h - 12 : h);
+      slot.innerHTML = `<strong>${ampm} ${dispH}:00</strong>`;
+      ul.appendChild(slot);
+      if (cur === end) break;
+      cur = (cur + 1) % 24;
+      if (cur === start) break; // 무한루프 방지
+    }
+  };
+
   // PDF 저장 기능
   document.getElementById('save-pdf').onclick = function () {
     const element = document.getElementById('timeline-list');
     html2pdf().set({ margin: 0.5, filename: 'timeline.pdf' }).from(element).save();
   };
-
-  // 시간대 만들기 예시 (시간 셀렉터 동작)
-  document.getElementById('set-times').onclick = function () {
-    // 예: 타임라인에 시간대별로 슬롯 만들기
-    const ul = document.getElementById('timeline-list');
-    ul.innerHTML = '';
-    for (let h = 7; h <= 22; h++) {
-      const slot = document.createElement('li');
-      slot.className = 'timeline-slot';
-      slot.innerHTML = `<strong>${h}:00</strong>`;
-      ul.appendChild(slot);
-    }
-  };
-
-  // 오늘 날짜 표시
-  const today = new Date();
-  document.getElementById('today-date').textContent =
-    today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
 });

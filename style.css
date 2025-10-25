@@ -105,23 +105,24 @@ li.core3 {
   background: #dbeafe;
   outline: 2px solid #4078c0;
 }
-/* PDF 버튼과 시간대 버튼 같은 줄 */
+
 .timeline-header {
   margin-bottom: 16px;
-}
-.time-setting-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
 }
 .time-setting {
   display: flex;
   align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+.time-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
   gap: 8px;
+  margin-bottom: 8px;
 }
 #save-pdf {
-  margin-left: auto;
   background: #4078c0;
   color: white;
   border-radius: 6px;
@@ -156,13 +157,19 @@ li.core3 {
   button, input[type="text"] {
     font-size: 1.07rem !important;
   }
-  .time-setting-row {
+  .time-setting {
     flex-direction: column !important;
     align-items: flex-start !important;
+    gap: 6px !important;
+  }
+  .time-action-row {
+    flex-direction: row !important;
+    width: 100%;
+    justify-content: flex-start !important;
     gap: 8px !important;
   }
   #save-pdf {
     margin-left: 0 !important;
-    width: 100% !important;
+    width: auto !important;
   }
 }
