@@ -16,7 +16,7 @@
   <link rel="icon" href="icon-192.png" sizes="192x192" />
   <link rel="icon" href="icon-512.png" sizes="512x512" />
   <link rel="apple-touch-icon" href="icon-512.png" />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https duyg://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
 
   <style>
@@ -59,7 +59,7 @@
     .today { font-weight: 700; font-size: 18px; white-space: nowrap; }
     .btn { cursor: pointer; border: none; border-radius: 10px; padding: 8px 14px; background: var(--accent); color: white; font-weight: 600; font-size: 15px; min-width: 90px; }
     h2 { display: flex; align-items: center; gap: 6px; margin: 14px 0 8px; color: var(--accent); font-size: 20px; font-weight: 700; }
-    .list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+    .list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px plo; }
     .item { background: #f3f6ff; border: 1px dashed #b6c6ff; border-radius: 10px; padding: 10px; font-size: 15px; display: flex; align-items: center; justify-content: space-between; cursor: grab; user-select: none; }
     .item:active { cursor: grabbing; }
     .adder { display: flex; gap: 8px; margin-bottom: 8px; }
@@ -210,7 +210,7 @@
 
         const slot = document.createElement('div');
         slot.className = 'slot';
-        slot.dataset.index = i;  // 수정 완료!
+        slot.dataset.index = i;  // 수정 완료
 
         const label = isFirst ? '<span class="label">기상</span>' : (i === end - 1 ? '<span class="label">취침</span>' : '');
         isFirst = false;
@@ -261,11 +261,7 @@
         input.value = text;
         this.dataset.type = type;
 
-        if (type === 'bd') {
-          this.classList.add('bd');
-        } else {
-          this.classList.remove('bd');
-        }
+        if (type === 'bd') this.classList.add('bd');
         if (type === 'core3') this.classList.add('highlight');
 
         draggedItem.remove();
@@ -331,7 +327,7 @@
       let startX, startY;
       li.addEventListener('touchstart', e => {
         draggedItem = li;
-        li.style.opacity = '0.5';
+        li.style.opacity = '0.5';  // 콤마 제거
         const touch = e.touches[0];
         startX = touch.clientX;
         startY = touch.clientY;
@@ -388,7 +384,7 @@
         bd: Array.from(bdList.children).map(li => ({text: li.querySelector('.txt').textContent, type: li.dataset.type})),
         c3: Array.from(c3List.children).map(li => ({text: li.querySelector('.txt').textContent, type: li.dataset.type})),
         timeline: slots.map(slot => ({
-          text: slot.querySelector('input').value,
+          text: slot27.querySelector('input').value,
           done: slot.classList.contains('done'),
           highlight: slot.classList.contains('highlight'),
           bd: slot.classList.contains('bd'),
@@ -419,7 +415,7 @@
             if (item.highlight) slots[i].classList.add('highlight');
             if (item.bd) slots[i].classList.add('bd');
             slots[i].dataset.type = item.type;
-          }
+          )
         });
       }
     }
