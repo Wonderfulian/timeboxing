@@ -4,60 +4,41 @@ window.addEventListener('DOMContentLoaded', function () {
   document.getElementById('today-date').textContent =
     today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
 
-  // 기상/취침 시간 select 옵션 생성
-  function fillTimeSelects() {
-    const ampmOpts = ['오전', '오후'];
-    const hourOpts = Array.from({ length: 12 }, (_, i) => i + 1);
-    const wakeAmpm = document.getElementById('wake-ampm');
-    const sleepAmpm = document.getElementById('sleep-ampm');
-    const wakeHour = document.getElementById('wake-hour');
-    const sleepHour = document.getElementById('sleep-hour');
-    [wakeAmpm, sleepAmpm].forEach(sel => {
-      sel.innerHTML = '';
-      ampmOpts.forEach(op => {
-        const o = document.createElement('option');
-        o.value = op;
-        o.textContent = op;
-        sel.appendChild(o);
-      });
-    });
-    [wakeHour, sleepHour].forEach(sel => {
-      sel.innerHTML = '';
-      hourOpts.forEach(op => {
-        const o = document.createElement('option');
-        o.value = op;
-        o.textContent = op + '시';
-        sel.appendChild(o);
-      });
-    });
+  // 시간 옵션 생성 (1~12시, 오전/오후)
+  function fillHourSelect(sel, defaultValue) {
+    sel.innerHTML = '';
+    for (let h = 1; h <= 12; h++) {
+      const opt = document.createElement('option');
+      opt.value = h;
+      opt.textContent = h + '시';
+      if (defaultValue === h) opt.selected = true;
+      sel.appendChild(opt);
+    }
   }
-  fillTimeSelects();
+  fillHourSelect(document.getElementById('wake-hour'), 7); // 기본 기상 7시
+  fillHourSelect(document.getElementById('sleep-hour'), 11); // 기본 취침 11시
 
   // 할 일 추가
-  document.getElementById('add-brain').onclick = function () {
-    const val = document.getElementById('brain-input').value.trim();
+  function addTaskToList(listId, inputId, className) {
+    const val = document.getElementById(inputId).value.trim();
     if (val) {
       const li = document.createElement('li');
       li.textContent = val;
-      li.className = '';
-      document.getElementById('brain-list').appendChild(li);
-      document.getElementById('brain-input').value = '';
+      li.className = className || '';
+      li.draggable = true;
+      document.getElementById(listId).appendChild(li);
+      document.getElementById(inputId).value = '';
       attachTaskEvents(li);
     }
+  }
+  document.getElementById('add-brain').onclick = function () {
+    addTaskToList('brain-list', 'brain-input', '');
   };
   document.getElementById('add-core').onclick = function () {
-    const val = document.getElementById('core-input').value.trim();
-    if (val) {
-      const li = document.createElement('li');
-      li.textContent = val;
-      li.className = 'core3';
-      document.getElementById('core-list').appendChild(li);
-      document.getElementById('core-input').value = '';
-      attachTaskEvents(li);
-    }
+    addTaskToList('core-list', 'core-input', 'core3');
   };
 
-  // 이벤트 함수로 기본동작 방지 및 타임라인 추가
+  // 드래그 앤 드롭 이벤트 연결
   function attachTaskEvents(li) {
     li.addEventListener('mousedown', function (event) {
       event.preventDefault();
@@ -66,10 +47,34 @@ window.addEventListener('DOMContentLoaded', function () {
       event.preventDefault();
       addTaskToTimeline(li.textContent, li.className);
     });
-    // 드래그 앤 드롭 로직도 필요시 구현
+    li.addEventListener('dragstart', function (event) {
+      event.dataTransfer.setData('text/plain', JSON.stringify({
+        text: li.textContent,
+        className: li.className
+      }));
+    });
   }
 
-  // 타임라인에 할 일 추가
+  // 타임라인 슬롯 드롭 이벤트 연결
+  function attachSlotEvents(slot) {
+    slot.addEventListener('dragover', function (event) {
+      event.preventDefault();
+      slot.classList.add('dragover');
+    });
+    slot.addEventListener('dragleave', function (event) {
+      slot.classList.remove('dragover');
+    });
+    slot.addEventListener('drop', function (event) {
+      slot.classList.remove('dragover');
+      const data = event.dataTransfer.getData('text/plain');
+      if (data) {
+        const obj = JSON.parse(data);
+        addTaskToSlot(slot, obj.text, obj.className);
+      }
+    });
+  }
+
+  // 타임라인에 할 일 추가(클릭 시, 맨 밑에 추가)
   function addTaskToTimeline(text, className) {
     const ul = document.getElementById('timeline-list');
     const li = document.createElement('li');
@@ -84,6 +89,23 @@ window.addEventListener('DOMContentLoaded', function () {
     };
     li.querySelector('.delete-btn').onclick = function () {
       ul.removeChild(li);
+    };
+  }
+
+  // 타임라인 슬롯에 할 일 추가(드래그 시, 해당 시간에 추가)
+  function addTaskToSlot(slot, text, className) {
+    const task = document.createElement('div');
+    task.className = 'timeline-task ' + (className || '');
+    task.innerHTML = `<span>${text}</span>
+      <button class="complete-btn">완료</button>
+      <button class="delete-btn">삭제</button>`;
+    slot.appendChild(task);
+
+    task.querySelector('.complete-btn').onclick = function () {
+      task.classList.toggle('completed');
+    };
+    task.querySelector('.delete-btn').onclick = function () {
+      slot.removeChild(task);
     };
   }
 
@@ -106,7 +128,6 @@ window.addEventListener('DOMContentLoaded', function () {
 
     const ul = document.getElementById('timeline-list');
     ul.innerHTML = '';
-    // 시간대 생성 (예: 30분 단위로)
     if (isNaN(start) || isNaN(end) || start === end) {
       ul.innerHTML = '<li>시간대를 올바르게 선택해 주세요!</li>';
       return;
@@ -115,6 +136,7 @@ window.addEventListener('DOMContentLoaded', function () {
     while (true) {
       const slot = document.createElement('li');
       slot.className = 'timeline-slot';
+      attachSlotEvents(slot);
       const h = cur % 24;
       const ampm = h < 12 ? '오전' : '오후';
       const dispH = h === 0 ? 12 : (h > 12 ? h - 12 : h);

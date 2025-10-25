@@ -100,16 +100,18 @@ li.core3 {
   margin-bottom: 4px;
   transition: background 0.2s;
   flex-direction: column;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
 }
 .timeline-slot.dragover {
   background: #dbeafe;
   outline: 2px solid #4078c0;
 }
-
 .timeline-header {
   margin-bottom: 16px;
 }
-.time-setting {
+.time-setting-row {
   display: flex;
   align-items: center;
   gap: 16px;
@@ -123,6 +125,7 @@ li.core3 {
   margin-bottom: 8px;
 }
 #save-pdf {
+  margin-left: auto;
   background: #4078c0;
   color: white;
   border-radius: 6px;
@@ -157,7 +160,7 @@ li.core3 {
   button, input[type="text"] {
     font-size: 1.07rem !important;
   }
-  .time-setting {
+  .time-setting-row {
     flex-direction: column !important;
     align-items: flex-start !important;
     gap: 6px !important;
