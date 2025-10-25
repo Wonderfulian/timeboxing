@@ -69,11 +69,12 @@
     .time-group label { font-weight: 600; font-size: 15px; width: 40px; text-align: center; }
     .time-group select { padding: 8px; border-radius: 8px; border: 1px solid #ddd; font-size: 15px; min-width: 70px; }
     .timegrid { display: grid; gap: 8px; max-height: calc(100vh - 380px); overflow-y: auto; padding-right: 4px; }
-    .slot { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; }
+    .slot { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; position: relative; }
     .slot .time { font-weight: 600; font-size: 15px; white-space: nowrap; display: flex; gap: 6px; }
     .slot .time .label { font-weight: 700; color: var(--accent); }
-    .slot input { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ddd; font-size: 15px; text-align: center; }
-    .slot.done input { text-decoration: line-through; color: #777; }
+    .slot input { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ddd; font-size: 15px; text-align: center; background: transparent; }
+    .slot.done { text-decoration: line-through; color: #777; opacity: 0.7; } /* 전체 슬롯에 줄 */
+    .slot.done input { text-decoration: inherit; color: inherit; }
     .slot.bd { background: var(--bd-color); }
     .slot.highlight { background: var(--core); }
     .slot.over { border: 2px dashed var(--accent); background: #f0f5ff; }
@@ -158,12 +159,10 @@
   </div>
 
   <script>
-    // 오늘 날짜
     const todayEl = document.getElementById('today');
     const now = new Date(), days = ['일','월','화','수','목','금','토'];
     todayEl.textContent = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} (${days[now.getDay()]})`;
 
-    // 요소
     const bdInput = document.getElementById('bd-input'), bdAdd = document.getElementById('bd-add'), bdList = document.getElementById('bd-list');
     const c3Input = document.getElementById('c3-input'), c3Add = document.getElementById('c3-add'), c3List = document.getElementById('c3-list');
     const startAmpm = document.getElementById('start-ampm'), startHour = document.getElementById('start-hour');
@@ -176,37 +175,28 @@
     const STORAGE_KEY = 'timebox-planner';
     let slots = [];
     let draggedItem = null;
-    let currentDropTarget = null;
     let autoScrollInterval = null;
 
-    // 시간 셀렉트 초기화 (먼저 호출!)
     function initTimeSelects() {
       for (let h = 1; h <= 12; h++) {
         const opt = `<option value="${h}">${h}시</option>`;
         startHour.insertAdjacentHTML('beforeend', opt);
         endHour.insertAdjacentHTML('beforeend', opt);
       }
-      startHour.value = 7;
-      endHour.value = 10;
-      startAmpm.value = '오전';
-      endAmpm.value = '오후';
+      startHour.value = 7; endHour.value = 10;
+      startAmpm.value = '오전'; endAmpm.value = '오후';
     }
 
-    // 타임라인 생성
     function buildTimeline() {
-      const sh = parseInt(startHour.value);
-      const eh = parseInt(endHour.value);
-      const startAM = startAmpm.value === '오전';
-      const endAM = endAmpm.value === '오전';
-
+      const sh = parseInt(startHour.value), eh = parseInt(endHour.value);
+      const startAM = startAmpm.value === '오전', endAM = endAmpm.value === '오전';
       let start = sh + (startAM ? 0 : 12);
       let end = eh + (endAM ? 0 : 12);
       if (end <= start) end += 24;
 
-      timeline.innerHTML = '';
-      slots = [];
-
+      timeline.innerHTML = ''; slots = [];
       let isFirst = true;
+
       for (let i = start; i < end; i++) {
         const h = i % 24;
         const ampm = h < 12 ? '오전' : '오후';
@@ -244,34 +234,34 @@
         slot.addEventListener(ev, e => {
           e.preventDefault();
           slot.classList.add('over');
-          currentDropTarget = slot;
         });
       });
-      ['dragleave'].forEach(ev => {
-        slot.addEventListener(ev, () => {
-          if (currentDropTarget === slot) slot.classList.remove('over');
-        });
+      slot.addEventListener('dragleave', () => {
+        slot.classList.remove('over');
       });
-      slot.addEventListener('drop', handleDrop);
+      slot.addEventListener('drop', handleDrop); // drop 이벤트 직접 처리
     }
 
     function handleDrop(e) {
       e.preventDefault();
-      this.classList.remove('over');
-      if (draggedItem && currentDropTarget === this) {
-        const text = draggedItem.querySelector('.txt').textContent;
-        const type = draggedItem.dataset.type;
-        const input = this.querySelector('input');
-        input.value = text;
-        this.dataset.type = type;
+      const slot = e.currentTarget; // 정확한 슬롯
+      slot.classList.remove('over');
 
-        if (type === 'bd') this.classList.add('bd');
-        if (type === 'core3') this.classList.add('highlight');
+      if (!draggedItem) return;
 
-        draggedItem.remove();
-        saveData();
-      }
-      currentDropTarget = null;
+      const text = draggedItem.querySelector('.txt').textContent;
+      const type = draggedItem.dataset.type;
+      const input = slot.querySelector('input');
+      input.value = text;
+      slot.dataset.type = type;
+
+      // 배경색 적용
+      slot.classList.remove('bd', 'highlight');
+      if (type === 'bd') slot.classList.add('bd');
+      if (type === 'core3') slot.classList.add('highlight');
+
+      draggedItem.remove();
+      saveData();
     }
 
     let lastTouch = 0;
@@ -292,7 +282,7 @@
       li.className = 'item'; li.draggable = true; li.dataset.type = type;
       li.innerHTML = `<span class="txt">${text}</span><button class="del">x</button>`;
       list.appendChild(li);
-      setupItem(li);  // 먼저 setupItem 호출
+      setupItem(li);
 
       slot.querySelector('input').value = '';
       slot.classList.remove('done', 'highlight', 'bd');
@@ -308,7 +298,7 @@
       li.innerHTML = `<span class="txt">${text}</span><button class="del">x</button>`;
       list.appendChild(li);
       input.value = '';
-      setupItem(li);  // setupItem 먼저 호출
+      setupItem(li);
       saveData();
     }
 
@@ -323,7 +313,6 @@
           if (draggedItem) draggedItem.style.opacity = '';
           draggedItem = null;
           document.querySelectorAll('.slot').forEach(s => s.classList.remove('over'));
-          currentDropTarget = null;
           clearInterval(autoScrollInterval);
         }, 0);
       });
@@ -351,31 +340,23 @@
         const slot = target ? target.closest('.slot') : null;
 
         document.querySelectorAll('.slot').forEach(s => s.classList.remove('over'));
-        if (slot) {
-          slot.classList.add('over');
-          currentDropTarget = slot;
-        } else {
-          currentDropTarget = null;
-        }
+        if (slot) slot.classList.add('over');
 
         const scrollThreshold = 100;
         const scrollSpeed = 15;
         clearInterval(autoScrollInterval);
         if (touch.clientY > window.innerHeight - scrollThreshold) {
-          autoScrollInterval = setInterval(() => {
-            timeline.scrollTop += scrollSpeed;
-          }, 16);
+          autoScrollInterval = setInterval(() => timeline.scrollTop += scrollSpeed, 16);
         }
       }, { passive: false });
 
       li.addEventListener('touchend', () => {
-        li.style.opacity = '';
-        li.style.transform = '';
+        li.style.opacity = ''; li.style.transform = '';
         clearInterval(autoScrollInterval);
-        if (currentDropTarget) {
+        const overSlot = document.querySelector('.slot.over');
+        if (overSlot) {
           const dropEvent = new Event('drop', { bubbles: true });
-          dropEvent.dataTransfer = { getData: () => '' };
-          currentDropTarget.dispatchEvent(dropEvent);
+          overSlot.dispatchEvent(dropEvent);
         }
         draggedItem = null;
       });
@@ -394,10 +375,8 @@
           bd: slot.classList.contains('bd'),
           type: slot.dataset.type || ''
         })),
-        startHour: startHour.value,
-        startAmpm: startAmpm.value,
-        endHour: endHour.value,
-        endAmpm: endAmpm.value
+        startHour: startHour.value, startAmpm: startAmpm.value,
+        endHour: endHour.value, endAmpm: endAmpm.value
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     }
@@ -425,13 +404,7 @@
     }
 
     pdfBtn.addEventListener('click', () => {
-      const opt = {
-        margin: 0.5,
-        filename: 'timebox-planner.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 1.5, useCORS: true },
-        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-      };
+      const opt = { margin: 0.5, filename: 'timebox-planner.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 1.5, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }};
       html2pdf().set(opt).from(document.querySelector('.wrap')).save();
     });
 
@@ -444,7 +417,6 @@
       input.addEventListener('keypress', e => { if (e.key === 'Enter') { const btn = input === bdInput ? bdAdd : c3Add; btn.click(); } });
     });
 
-    // 초기화 순서 중요: 시간 먼저, 로드 나중
     initTimeSelects();
     loadData();
   </script>
