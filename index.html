@@ -16,7 +16,7 @@
   <link rel="icon" href="icon-192.png" sizes="192x192" />
   <link rel="icon" href="icon-512.png" sizes="512x512" />
   <link rel="apple-touch-icon" href="icon-512.png" />
-  <link href="https duyg://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
 
   <style>
@@ -59,7 +59,7 @@
     .today { font-weight: 700; font-size: 18px; white-space: nowrap; }
     .btn { cursor: pointer; border: none; border-radius: 10px; padding: 8px 14px; background: var(--accent); color: white; font-weight: 600; font-size: 15px; min-width: 90px; }
     h2 { display: flex; align-items: center; gap: 6px; margin: 14px 0 8px; color: var(--accent); font-size: 20px; font-weight: 700; }
-    .list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px plo; }
+    .list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
     .item { background: #f3f6ff; border: 1px dashed #b6c6ff; border-radius: 10px; padding: 10px; font-size: 15px; display: flex; align-items: center; justify-content: space-between; cursor: grab; user-select: none; }
     .item:active { cursor: grabbing; }
     .adder { display: flex; gap: 8px; margin-bottom: 8px; }
@@ -158,10 +158,12 @@
   </div>
 
   <script>
+    // 오늘 날짜
     const todayEl = document.getElementById('today');
     const now = new Date(), days = ['일','월','화','수','목','금','토'];
     todayEl.textContent = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} (${days[now.getDay()]})`;
 
+    // 요소
     const bdInput = document.getElementById('bd-input'), bdAdd = document.getElementById('bd-add'), bdList = document.getElementById('bd-list');
     const c3Input = document.getElementById('c3-input'), c3Add = document.getElementById('c3-add'), c3List = document.getElementById('c3-list');
     const startAmpm = document.getElementById('start-ampm'), startHour = document.getElementById('start-hour');
@@ -177,6 +179,7 @@
     let currentDropTarget = null;
     let autoScrollInterval = null;
 
+    // 시간 셀렉트 초기화 (먼저 호출!)
     function initTimeSelects() {
       for (let h = 1; h <= 12; h++) {
         const opt = `<option value="${h}">${h}시</option>`;
@@ -189,6 +192,7 @@
       endAmpm.value = '오후';
     }
 
+    // 타임라인 생성
     function buildTimeline() {
       const sh = parseInt(startHour.value);
       const eh = parseInt(endHour.value);
@@ -210,7 +214,7 @@
 
         const slot = document.createElement('div');
         slot.className = 'slot';
-        slot.dataset.index = i;  // 수정 완료
+        slot.dataset.index = i;
 
         const label = isFirst ? '<span class="label">기상</span>' : (i === end - 1 ? '<span class="label">취침</span>' : '');
         isFirst = false;
@@ -288,7 +292,7 @@
       li.className = 'item'; li.draggable = true; li.dataset.type = type;
       li.innerHTML = `<span class="txt">${text}</span><button class="del">x</button>`;
       list.appendChild(li);
-      setupItem(li);
+      setupItem(li);  // 먼저 setupItem 호출
 
       slot.querySelector('input').value = '';
       slot.classList.remove('done', 'highlight', 'bd');
@@ -304,7 +308,7 @@
       li.innerHTML = `<span class="txt">${text}</span><button class="del">x</button>`;
       list.appendChild(li);
       input.value = '';
-      setupItem(li);
+      setupItem(li);  // setupItem 먼저 호출
       saveData();
     }
 
@@ -327,7 +331,7 @@
       let startX, startY;
       li.addEventListener('touchstart', e => {
         draggedItem = li;
-        li.style.opacity = '0.5';  // 콤마 제거
+        li.style.opacity = '0.5';
         const touch = e.touches[0];
         startX = touch.clientX;
         startY = touch.clientY;
@@ -384,7 +388,7 @@
         bd: Array.from(bdList.children).map(li => ({text: li.querySelector('.txt').textContent, type: li.dataset.type})),
         c3: Array.from(c3List.children).map(li => ({text: li.querySelector('.txt').textContent, type: li.dataset.type})),
         timeline: slots.map(slot => ({
-          text: slot27.querySelector('input').value,
+          text: slot.querySelector('input').value,
           done: slot.classList.contains('done'),
           highlight: slot.classList.contains('highlight'),
           bd: slot.classList.contains('bd'),
@@ -415,7 +419,7 @@
             if (item.highlight) slots[i].classList.add('highlight');
             if (item.bd) slots[i].classList.add('bd');
             slots[i].dataset.type = item.type;
-          )
+          }
         });
       }
     }
@@ -440,6 +444,7 @@
       input.addEventListener('keypress', e => { if (e.key === 'Enter') { const btn = input === bdInput ? bdAdd : c3Add; btn.click(); } });
     });
 
+    // 초기화 순서 중요: 시간 먼저, 로드 나중
     initTimeSelects();
     loadData();
   </script>
