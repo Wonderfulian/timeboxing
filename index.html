@@ -118,40 +118,38 @@
       font-size: 15px;
     }
 
-    /* 타임라인 설정 (기상/취침 분리 표기) */
+    /* 타임라인 설정 (가로 배치) */
     .time-setup {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 8px;
+      display: flex;
+      gap: 12px;
       margin-bottom: 12px;
+      flex-wrap: wrap;
+      align-items: center;
     }
-    .time-row {
+    .time-group {
       display: flex;
       align-items: center;
       gap: 6px;
       flex-wrap: nowrap;
     }
-    .time-row label {
-      width: 28px;
+    .time-group label {
       font-weight: 600;
       font-size: 15px;
-      flex-shrink: 0;
+      width: 40px;
       text-align: center;
     }
-    .time-row .ampm {
-      width: 36px;
+    .time-group .ampm {
       font-size: 14px;
       font-weight: 500;
-      flex-shrink: 0;
+      width: 36px;
+      text-align: center;
     }
-    .time-row .hour {
-      flex: 1;
-      min-width: 0;
+    .time-group select {
       padding: 8px;
       border-radius: 8px;
       border: 1px solid #ddd;
       font-size: 15px;
-      text-align: center;
+      min-width: 70px;
     }
 
     /* 타임라인 */
@@ -161,7 +159,7 @@
     }
     .slot {
       display: grid;
-      grid-template-columns: 86px 1fr auto;
+      grid-template-columns: auto 1fr auto;
       align-items: center;
       gap: 8px;
       background: #fff;
@@ -174,6 +172,12 @@
       font-weight: 600;
       font-size: 15px;
       white-space: nowrap;
+      display: flex;
+      gap: 6px;
+    }
+    .slot .time .label {
+      font-weight: 700;
+      color: var(--accent);
     }
     .slot input {
       width: 100%;
@@ -194,6 +198,7 @@
     }
     .slot.over {
       border: 2px dashed var(--accent);
+      background: #f0f5ff;
     }
 
     /* 완료 버튼 */
@@ -222,12 +227,12 @@
       .btn { font-size: 14px; padding: 7px 10px; min-width: auto; }
       h2 { font-size: 18px; }
       .adder input, .item, .slot input { font-size: 14px; }
-      .slot { grid-template-columns: 70px 1fr 50px; }
-      .slot .time { font-size: 14px; }
+      .slot { grid-template-columns: 1fr auto; gap: 6px; }
+      .slot .time { font-size: 14px; flex-wrap: wrap; }
       .strike { padding: 4px 8px; font-size: 12px; }
-      .time-row label { width: 24px; font-size: 14px; }
-      .time-row .ampm { width: 30px; font-size: 13px; }
-      .time-row .hour { font-size: 14px; padding: 6px; }
+      .time-group label { width: 36px; font-size: 14px; }
+      .time-group .ampm { width: 30px; font-size: 13px; }
+      .time-group select { font-size: 14px; padding: 6px; }
     }
   </style>
 </head>
@@ -257,17 +262,17 @@
 
     <h2>타임라인</h2>
     <div class="time-setup">
-      <div class="time-row">
+      <div class="time-group">
         <label>기상</label>
         <div class="ampm" id="start-ampm">오전</div>
-        <select id="start-hour" class="hour"></select>
+        <select id="start-hour"></select>
       </div>
-      <div class="time-row">
+      <div class="time-group">
         <label>취침</label>
         <div class="ampm" id="end-ampm">오후</div>
-        <select id="end-hour" class="hour"></select>
-        <button id="build" class="btn" style="margin-left: auto; min-width: 70px;">적용</button>
+        <select id="end-hour"></select>
       </div>
+      <button id="build" class="btn" style="margin-left: auto;">적용</button>
     </div>
     <div id="timeline" class="timegrid"></div>
   </div>
@@ -291,87 +296,99 @@
     const STORAGE_KEY = 'timebox-planner';
     let slots = [];
     let draggedItem = null;
+    let currentDropTarget = null;
 
-    // 시간 셀렉트 초기화 (오전/오후 + 시)
+    // 시간 셀렉트 초기화
     function initTimeSelects() {
-      const hours = [];
-      for (let h = 1; h <= 12; h++) hours.push(h);
-
-      hours.forEach(h => {
+      for (let h = 1; h <= 12; h++) {
         const opt = `<option value="${h}">${h}시</option>`;
         startHour.insertAdjacentHTML('beforeend', opt);
         endHour.insertAdjacentHTML('beforeend', opt);
-      });
+      }
       startHour.value = 7;
       endHour.value = 10;
-      updateAmpmDisplay();
+      updateAmpm();
     }
 
-    function updateAmpmDisplay() {
-      const startH = parseInt(startHour.value);
-      const endH = parseInt(endHour.value);
-      startAmpm.textContent = startH < 12 ? '오전' : '오후';
-      endAmpm.textContent = endH < 12 ? '오전' : '오후';
+    function updateAmpm() {
+      const sh = parseInt(startHour.value);
+      const eh = parseInt(endHour.value);
+      startAmpm.textContent = sh < 12 ? '오전' : '오후';
+      endAmpm.textContent = eh < 12 ? '오전' : '오후';
     }
 
-    startHour.addEventListener('change', updateAmpmDisplay);
-    endHour.addEventListener('change', updateAmpmDisplay);
+    startHour.addEventListener('change', updateAmpm);
+    endHour.addEventListener('change', updateAmpm);
 
     // 타임라인 생성
     function buildTimeline() {
-      const startH = parseInt(startHour.value);
-      const endH = parseInt(endHour.value);
+      const sh = parseInt(startHour.value);
+      const eh = parseInt(endHour.value);
       const startAM = startAmpm.textContent === '오전';
       const endAM = endAmpm.textContent === '오전';
 
-      let start = startH + (startAM ? 0 : 12);
-      let end = endH + (endAM ? 0 : 12);
+      let start = sh + (startAM ? 0 : 12);
+      let end = eh + (endAM ? 0 : 12);
       if (end <= start) end += 24;
-
-      if (end - start > 24) return alert('24시간을 초과할 수 없습니다.');
 
       timeline.innerHTML = '';
       slots = [];
 
+      let isFirst = true;
       for (let i = start; i < end; i++) {
         const h = i % 24;
         const ampm = h < 12 ? '오전' : '오후';
         const hour = h === 0 ? 12 : h > 12 ? h - 12 : h;
-        const timeStr = `${ampm} ${hour}시`;
 
         const slot = document.createElement('div');
         slot.className = 'slot';
         slot.dataset.index = i;
+
+        const label = isFirst ? '<span class="label">기상</span>' : (i === end - 1 ? '<span class="label">취침</span>' : '');
+        isFirst = false;
+
         slot.innerHTML = `
-          <div class="time">${timeStr}</div>
+          <div class="time">${label}<span>${ampm}</span><span>${hour}시</span></div>
           <input type="text" placeholder="여기에 드래그" readonly />
           <button class="strike">완료</button>
         `;
         timeline.appendChild(slot);
         slots.push(slot);
 
-        slot.addEventListener('dblclick', handleSlotDblClick);
-        slot.addEventListener('touchend', handleTouchEnd);
-
-        slot.querySelector('.strike').addEventListener('click', () => {
-          slot.classList.toggle('done');
-          saveData();
-        });
-
-        ['dragover', 'dragenter'].forEach(ev => {
-          slot.addEventListener(ev, e => { e.preventDefault(); slot.classList.add('over'); });
-        });
-        ['dragleave', 'drop'].forEach(ev => {
-          slot.addEventListener(ev, () => slot.classList.remove('over'));
-        });
-        slot.addEventListener('drop', handleDrop);
+        setupSlot(slot);
       }
+    }
+
+    function setupSlot(slot) {
+      slot.addEventListener('dblclick', handleSlotDblClick);
+      slot.addEventListener('touchend', handleTouchEnd);
+
+      slot.querySelector('.strike').addEventListener('click', () => {
+        slot.classList.toggle('done');
+        saveData();
+      });
+
+      ['dragover', 'dragenter'].forEach(ev => {
+        slot.addEventListener(ev, e => {
+          e.preventDefault();
+          slot.classList.add('over');
+          currentDropTarget = slot;
+        });
+      });
+      ['dragleave'].forEach(ev => {
+        slot.addEventListener(ev, () => {
+          if (currentDropTarget === slot) {
+            slot.classList.remove('over');
+          }
+        });
+      });
+      slot.addEventListener('drop', handleDrop);
     }
 
     function handleDrop(e) {
       e.preventDefault();
       this.classList.remove('over');
-      if (draggedItem) {
+      if (draggedItem && currentDropTarget === this) {
         const text = draggedItem.querySelector('.txt').textContent;
         const type = draggedItem.dataset.type;
         this.querySelector('input').value = text;
@@ -380,6 +397,7 @@
         draggedItem.remove();
         saveData();
       }
+      currentDropTarget = null;
     }
 
     let lastTouch = 0;
@@ -420,7 +438,7 @@
       saveData();
     }
 
-    // 모바일 드래그 & 드롭 완벽 지원
+    // 모바일 드래그 100% 안정화
     function setupItem(li) {
       li.addEventListener('dragstart', e => {
         draggedItem = li;
@@ -428,11 +446,16 @@
         setTimeout(() => li.style.opacity = '0.5', 0);
       });
       li.addEventListener('dragend', () => {
-        setTimeout(() => { if (draggedItem) draggedItem.style.opacity = ''; draggedItem = null; }, 0);
+        setTimeout(() => {
+          if (draggedItem) draggedItem.style.opacity = '';
+          draggedItem = null;
+          document.querySelectorAll('.slot').forEach(s => s.classList.remove('over'));
+          currentDropTarget = null;
+        }, 0);
       });
 
       // 터치 드래그
-      let startX, startY, targetSlot = null;
+      let startX, startY;
       li.addEventListener('touchstart', e => {
         draggedItem = li;
         li.style.opacity = '0.5';
@@ -448,27 +471,31 @@
         const deltaY = touch.clientY - startY;
         li.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
 
-        // 드롭 타겟 찾기
+        // 실시간 드롭 타겟 감지
         const rect = li.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
-        targetSlot = document.elementFromPoint(centerX, centerY);
-        if (targetSlot && targetSlot.classList.contains('slot')) {
-          document.querySelectorAll('.slot').forEach(s => s.classList.remove('over'));
-          targetSlot.classList.add('over');
+        const target = document.elementFromPoint(centerX, centerY);
+        const slot = target ? target.closest('.slot') : null;
+
+        document.querySelectorAll('.slot').forEach(s => s.classList.remove('over'));
+        if (slot) {
+          slot.classList.add('over');
+          currentDropTarget = slot;
+        } else {
+          currentDropTarget = null;
         }
       }, { passive: false });
 
       li.addEventListener('touchend', () => {
         li.style.opacity = '';
         li.style.transform = '';
-        if (targetSlot && targetSlot.classList.contains('slot')) {
+        if (currentDropTarget) {
           const dropEvent = new Event('drop', { bubbles: true });
-          targetSlot.dispatchEvent(dropEvent);
+          dropEvent.dataTransfer = { getData: () => '' };
+          currentDropTarget.dispatchEvent(dropEvent);
         }
-        document.querySelectorAll('.slot').forEach(s => s.classList.remove('over'));
         draggedItem = null;
-        targetSlot = null;
       });
 
       li.querySelector('.del').addEventListener('click', () => { li.remove(); saveData(); });
@@ -494,13 +521,21 @@
 
     function loadData() {
       const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-      (data.bd || []).forEach(item => { const li = document.createElement('li'); li.className = 'item'; li.draggable = true; li.dataset.type = item.type; li.innerHTML = `<span class="txt">${item.text}</span><button class="del">x</button>`; bdList.appendChild(li); setupItem(li); });
-      (data.c3 || []).forEach(item => { const li = document.createElement('li'); li.className = 'item'; li.draggable = true; li.dataset.type = item.type; li.innerHTML = `<span class="txt">${item.text}</span><button class="del">x</button>`; c3List.appendChild(li); setupItem(li); });
+      (data.bd || []).forEach(item => {
+        const li = document.createElement('li'); li.className = 'item'; li.draggable = true; li.dataset.type = item.type;
+        li.innerHTML = `<span class="txt">${item.text}</span><button class="del">x</button>`;
+        bdList.appendChild(li); setupItem(li);
+      });
+      (data.c3 || []).forEach(item => {
+        const li = document.createElement('li'); li.className = 'item'; li.draggable = true; li.dataset.type = item.type;
+        li.innerHTML = `<span class="txt">${item.text}</span><button class="del">x</button>`;
+        c3List.appendChild(li); setupItem(li);
+      });
       if (data.startHour) startHour.value = data.startHour;
       if (data.startAmpm) startAmpm.textContent = data.startAmpm;
       if (data.endHour) endHour.value = data.endHour;
       if (data.endAmpm) endAmpm.textContent = data.endAmpm;
-      updateAmpmDisplay();
+      updateAmpm();
       buildTimeline();
       if (data.timeline) {
         data.timeline.forEach((item, i) => {
