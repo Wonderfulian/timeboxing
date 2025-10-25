@@ -32,6 +32,7 @@
       padding: 16px;
       display: flex;
       justify-content: center;
+      overflow-x: hidden;
     }
     .wrap {
       width: 100%;
@@ -118,7 +119,7 @@
       font-size: 15px;
     }
 
-    /* 타임라인 설정 (가로 배치) */
+    /* 타임라인 설정 */
     .time-setup {
       display: flex;
       gap: 12px;
@@ -138,12 +139,6 @@
       width: 40px;
       text-align: center;
     }
-    .time-group .ampm {
-      font-size: 14px;
-      font-weight: 500;
-      width: 36px;
-      text-align: center;
-    }
     .time-group select {
       padding: 8px;
       border-radius: 8px;
@@ -156,10 +151,13 @@
     .timegrid {
       display: grid;
       gap: 8px;
+      max-height: calc(100vh - 380px);
+      overflow-y: auto;
+      padding-right: 4px;
     }
     .slot {
       display: grid;
-      grid-template-columns: auto 1fr auto;
+      grid-template-columns: 1fr auto;
       align-items: center;
       gap: 8px;
       background: #fff;
@@ -174,6 +172,7 @@
       white-space: nowrap;
       display: flex;
       gap: 6px;
+      align-items: center;
     }
     .slot .time .label {
       font-weight: 700;
@@ -201,15 +200,16 @@
       background: #f0f5ff;
     }
 
-    /* 완료 버튼 */
+    /* 완료 버튼 오른쪽 정렬 */
     .strike {
       background: #ccc;
       border: none;
       border-radius: 6px;
-      padding: 6px 10px;
+      padding: 6px 12px;
       font-weight: 600;
       cursor: pointer;
       font-size: 13px;
+      white-space: nowrap;
     }
 
     /* 안내문 */
@@ -227,11 +227,10 @@
       .btn { font-size: 14px; padding: 7px 10px; min-width: auto; }
       h2 { font-size: 18px; }
       .adder input, .item, .slot input { font-size: 14px; }
-      .slot { grid-template-columns: 1fr auto; gap: 6px; }
-      .slot .time { font-size: 14px; flex-wrap: wrap; }
-      .strike { padding: 4px 8px; font-size: 12px; }
+      .slot { gap: 6px; }
+      .slot .time { font-size: 14px; }
+      .strike { padding: 5px 10px; font-size: 12px; }
       .time-group label { width: 36px; font-size: 14px; }
-      .time-group .ampm { width: 30px; font-size: 13px; }
       .time-group select { font-size: 14px; padding: 6px; }
     }
   </style>
@@ -264,12 +263,18 @@
     <div class="time-setup">
       <div class="time-group">
         <label>기상</label>
-        <div class="ampm" id="start-ampm">오전</div>
+        <select id="start-ampm">
+          <option value="오전">오전</option>
+          <option value="오후">오후</option>
+        </select>
         <select id="start-hour"></select>
       </div>
       <div class="time-group">
         <label>취침</label>
-        <div class="ampm" id="end-ampm">오후</div>
+        <select id="end-ampm">
+          <option value="오전">오전</option>
+          <option value="오후">오후</option>
+        </select>
         <select id="end-hour"></select>
       </div>
       <button id="build" class="btn" style="margin-left: auto;">적용</button>
@@ -297,6 +302,7 @@
     let slots = [];
     let draggedItem = null;
     let currentDropTarget = null;
+    let autoScrollInterval = null;
 
     // 시간 셀렉트 초기화
     function initTimeSelects() {
@@ -307,25 +313,16 @@
       }
       startHour.value = 7;
       endHour.value = 10;
-      updateAmpm();
+      startAmpm.value = '오전';
+      endAmpm.value = '오후';
     }
-
-    function updateAmpm() {
-      const sh = parseInt(startHour.value);
-      const eh = parseInt(endHour.value);
-      startAmpm.textContent = sh < 12 ? '오전' : '오후';
-      endAmpm.textContent = eh < 12 ? '오전' : '오후';
-    }
-
-    startHour.addEventListener('change', updateAmpm);
-    endHour.addEventListener('change', updateAmpm);
 
     // 타임라인 생성
     function buildTimeline() {
       const sh = parseInt(startHour.value);
       const eh = parseInt(endHour.value);
-      const startAM = startAmpm.textContent === '오전';
-      const endAM = endAmpm.textContent === '오전';
+      const startAM = startAmpm.value === '오전';
+      const endAM = endAmpm.value === '오전';
 
       let start = sh + (startAM ? 0 : 12);
       let end = eh + (endAM ? 0 : 12);
@@ -377,9 +374,7 @@
       });
       ['dragleave'].forEach(ev => {
         slot.addEventListener(ev, () => {
-          if (currentDropTarget === slot) {
-            slot.classList.remove('over');
-          }
+          if (currentDropTarget === slot) slot.classList.remove('over');
         });
       });
       slot.addEventListener('drop', handleDrop);
@@ -438,7 +433,7 @@
       saveData();
     }
 
-    // 모바일 드래그 100% 안정화
+    // 모바일 드래그 + 자동 스크롤
     function setupItem(li) {
       li.addEventListener('dragstart', e => {
         draggedItem = li;
@@ -451,10 +446,11 @@
           draggedItem = null;
           document.querySelectorAll('.slot').forEach(s => s.classList.remove('over'));
           currentDropTarget = null;
+          clearInterval(autoScrollInterval);
         }, 0);
       });
 
-      // 터치 드래그
+      // 터치 드래그 + 자동 스크롤
       let startX, startY;
       li.addEventListener('touchstart', e => {
         draggedItem = li;
@@ -471,7 +467,7 @@
         const deltaY = touch.clientY - startY;
         li.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
 
-        // 실시간 드롭 타겟 감지
+        // 드롭 타겟 감지
         const rect = li.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
@@ -485,11 +481,22 @@
         } else {
           currentDropTarget = null;
         }
+
+        // 자동 스크롤 (하단 근접 시)
+        const scrollThreshold = 100;
+        const scrollSpeed = 15;
+        clearInterval(autoScrollInterval);
+        if (touch.clientY > window.innerHeight - scrollThreshold) {
+          autoScrollInterval = setInterval(() => {
+            timeline.scrollTop += scrollSpeed;
+          }, 16);
+        }
       }, { passive: false });
 
       li.addEventListener('touchend', () => {
         li.style.opacity = '';
         li.style.transform = '';
+        clearInterval(autoScrollInterval);
         if (currentDropTarget) {
           const dropEvent = new Event('drop', { bubbles: true });
           dropEvent.dataTransfer = { getData: () => '' };
@@ -512,30 +519,21 @@
           type: slot.dataset.type || ''
         })),
         startHour: startHour.value,
-        startAmpm: startAmpm.textContent,
+        startAmpm: startAmpm.value,
         endHour: endHour.value,
-        endAmpm: endAmpm.textContent
+        endAmpm: endAmpm.value
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     }
 
     function loadData() {
       const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-      (data.bd || []).forEach(item => {
-        const li = document.createElement('li'); li.className = 'item'; li.draggable = true; li.dataset.type = item.type;
-        li.innerHTML = `<span class="txt">${item.text}</span><button class="del">x</button>`;
-        bdList.appendChild(li); setupItem(li);
-      });
-      (data.c3 || []).forEach(item => {
-        const li = document.createElement('li'); li.className = 'item'; li.draggable = true; li.dataset.type = item.type;
-        li.innerHTML = `<span class="txt">${item.text}</span><button class="del">x</button>`;
-        c3List.appendChild(li); setupItem(li);
-      });
+      (data.bd || []).forEach(item => { const li = document.createElement('li'); li.className = 'item'; li.draggable = true; li.dataset.type = item.type; li.innerHTML = `<span class="txt">${item.text}</span><button class="del">x</button>`; bdList.appendChild(li); setupItem(li); });
+      (data.c3 || []).forEach(item => { const li = document.createElement('li'); li.className = 'item'; li.draggable = true; li.dataset.type = item.type; li.innerHTML = `<span class="txt">${item.text}</span><button class="del">x</button>`; c3List.appendChild(li); setupItem(li); });
       if (data.startHour) startHour.value = data.startHour;
-      if (data.startAmpm) startAmpm.textContent = data.startAmpm;
+      if (data.startAmpm) startAmpm.value = data.startAmpm;
       if (data.endHour) endHour.value = data.endHour;
-      if (data.endAmpm) endAmpm.textContent = data.endAmpm;
-      updateAmpm();
+      if (data.endAmpm) endAmpm.value = data.endAmpm;
       buildTimeline();
       if (data.timeline) {
         data.timeline.forEach((item, i) => {
