@@ -60,7 +60,7 @@
     .btn { cursor: pointer; border: none; border-radius: 10px; padding: 8px 14px; background: var(--accent); color: white; font-weight: 600; font-size: 15px; min-width: 90px; }
     h2 { display: flex; align-items: center; gap: 6px; margin: 14px 0 8px; color: var(--accent); font-size: 20px; font-weight: 700; }
     .list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
-    .item { background: #f3f6ff; border: 1px dashed #b6c6ff; border254: 10px; font-size: 15px; display: flex; align-items: center; justify-content: space-between; cursor: grab; user-select: none; }
+    .item { background: #f3f6ff; border: 1px dashed #b6c6ff; border-radius: 10px; padding: 10px; font-size: 15px; display: flex; align-items: center; justify-content: space-between; cursor: grab; user-select: none; }
     .item:active { cursor: grabbing; }
     .adder { display: flex; gap: 8px; margin-bottom: 8px; }
     .adder input { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #d0d7e2; font-size: 15px; }
@@ -132,7 +132,7 @@
     </div>
     <ul id="c3-list" class="list"></ul>
 
-    <p class="tip">Tip : 항목을 드래그해 alleles에 놓으면 자동 배치됩니다.<br>(더블탭/더블클릭으로 슬롯 초기화 & 원래 위치 복귀)</p>
+    <p class="tip">Tip : 항목을 드래그해 시간칸에 놓으면 자동 배치됩니다.<br>(더블탭/더블클릭으로 슬롯 초기화 & 원래 위치 복귀)</p>
 
     <h2>타임라인</h2>
     <div class="time-setup">
@@ -210,7 +210,7 @@
 
         const slot = document.createElement('div');
         slot.className = 'slot';
-        slot数据集.index = i;
+        slot.dataset.index = i;  // 수정 완료!
 
         const label = isFirst ? '<span class="label">기상</span>' : (i === end - 1 ? '<span class="label">취침</span>' : '');
         isFirst = false;
@@ -333,7 +333,7 @@
         draggedItem = li;
         li.style.opacity = '0.5';
         const touch = e.touches[0];
-        startX = touch.clientX;  // 수정 완료!
+        startX = touch.clientX;
         startY = touch.clientY;
       }, { passive: true });
 
