@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>시간관리 앱</title>
-  <!-- manifest 연결 (PWA/아이콘용) -->
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -32,24 +31,26 @@
     <div class="right-panel">
       <div class="timeline-header">
         <h2>📅 타임라인</h2>
-        <div class="time-setting">
-          <label>기상
-            <select id="wake-ampm">
-              <option value="오전">오전</option>
-              <option value="오후">오후</option>
-            </select>
-            <select id="wake-hour"></select>
-          </label>
-          <label>취침
-            <select id="sleep-ampm">
-              <option value="오전">오전</option>
-              <option value="오후">오후</option>
-            </select>
-            <select id="sleep-hour"></select>
-          </label>
-          <button id="set-times">시간대 만들기</button>
+        <div class="time-setting-row">
+          <div class="time-setting">
+            <label>기상
+              <select id="wake-ampm">
+                <option value="오전">오전</option>
+                <option value="오후">오후</option>
+              </select>
+              <select id="wake-hour"></select>
+            </label>
+            <label>취침
+              <select id="sleep-ampm">
+                <option value="오전">오전</option>
+                <option value="오후">오후</option>
+              </select>
+              <select id="sleep-hour"></select>
+            </label>
+            <button id="set-times">시간대 만들기</button>
+          </div>
+          <button id="save-pdf">PDF 저장</button>
         </div>
-        <button id="save-pdf">PDF 저장</button>
       </div>
       <ul id="timeline-list"></ul>
     </div>

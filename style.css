@@ -103,32 +103,66 @@ li.core3 {
 }
 .timeline-slot.dragover {
   background: #dbeafe;
+  outline: 2px solid #4078c0;
 }
-
-/* 모바일 반응형 레이아웃 */
+/* PDF 버튼과 시간대 버튼 같은 줄 */
+.timeline-header {
+  margin-bottom: 16px;
+}
+.time-setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.time-setting {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#save-pdf {
+  margin-left: auto;
+  background: #4078c0;
+  color: white;
+  border-radius: 6px;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
 @media (max-width: 768px) {
   .container {
-    flex-direction: column;
-    gap: 0;
-    max-width: 100%;
-    margin: 0;
+    flex-direction: column !important;
+    gap: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
   }
   .left-panel, .right-panel {
-    padding: 12px;
-    box-shadow: none;
-    border-radius: 0;
-    margin-bottom: 16px;
-    flex: unset;
-    width: 100%;
+    padding: 12px !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    margin-bottom: 16px !important;
+    flex: unset !important;
+    width: 100% !important;
   }
   .right-panel {
-    margin-bottom: 0;
+    margin-bottom: 0 !important;
   }
   .timeline-slot {
-    min-height: 36px;
-    padding: 6px;
+    min-height: 36px !important;
+    padding: 6px !important;
   }
   button, input[type="text"] {
-    font-size: 1.07rem;
+    font-size: 1.07rem !important;
+  }
+  .time-setting-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+  #save-pdf {
+    margin-left: 0 !important;
+    width: 100% !important;
   }
 }
