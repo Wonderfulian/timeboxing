@@ -118,7 +118,7 @@
       font-size: 15px;
     }
 
-    /* 타임라인 설정 (기상/취침 2줄, 기상 라벨 폭 줄임) */
+    /* 타임라인 설정 (기상/취침 분리 표기) */
     .time-setup {
       display: grid;
       grid-template-columns: 1fr;
@@ -128,22 +128,30 @@
     .time-row {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       flex-wrap: nowrap;
     }
     .time-row label {
-      width: 28px; /* 기상 라벨 폭 줄임 */
+      width: 28px;
       font-weight: 600;
       font-size: 15px;
       flex-shrink: 0;
+      text-align: center;
     }
-    .time-row select {
+    .time-row .ampm {
+      width: 36px;
+      font-size: 14px;
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+    .time-row .hour {
       flex: 1;
       min-width: 0;
       padding: 8px;
       border-radius: 8px;
       border: 1px solid #ddd;
       font-size: 15px;
+      text-align: center;
     }
 
     /* 타임라인 */
@@ -218,7 +226,8 @@
       .slot .time { font-size: 14px; }
       .strike { padding: 4px 8px; font-size: 12px; }
       .time-row label { width: 24px; font-size: 14px; }
-      .time-row select { font-size: 14px; padding: 6px; }
+      .time-row .ampm { width: 30px; font-size: 13px; }
+      .time-row .hour { font-size: 14px; padding: 6px; }
     }
   </style>
 </head>
@@ -250,11 +259,13 @@
     <div class="time-setup">
       <div class="time-row">
         <label>기상</label>
-        <select id="start"></select>
+        <div class="ampm" id="start-ampm">오전</div>
+        <select id="start-hour" class="hour"></select>
       </div>
       <div class="time-row">
         <label>취침</label>
-        <select id="end"></select>
+        <div class="ampm" id="end-ampm">오후</div>
+        <select id="end-hour" class="hour"></select>
         <button id="build" class="btn" style="margin-left: auto; min-width: 70px;">적용</button>
       </div>
     </div>
@@ -270,7 +281,9 @@
     // 요소
     const bdInput = document.getElementById('bd-input'), bdAdd = document.getElementById('bd-add'), bdList = document.getElementById('bd-list');
     const c3Input = document.getElementById('c3-input'), c3Add = document.getElementById('c3-add'), c3List = document.getElementById('c3-list');
-    const startSelect = document.getElementById('start'), endSelect = document.getElementById('end'), buildBtn = document.getElementById('build');
+    const startAmpm = document.getElementById('start-ampm'), startHour = document.getElementById('start-hour');
+    const endAmpm = document.getElementById('end-ampm'), endHour = document.getElementById('end-hour');
+    const buildBtn = document.getElementById('build');
     const timeline = document.getElementById('timeline');
     const clearBtn = document.getElementById('clear');
     const pdfBtn = document.getElementById('pdf');
@@ -279,29 +292,43 @@
     let slots = [];
     let draggedItem = null;
 
-    // 시간 셀렉트 초기화
+    // 시간 셀렉트 초기화 (오전/오후 + 시)
     function initTimeSelects() {
-      const times = [];
-      times.push({val: 0, label: '자정 (오전 12:00)'});
-      for (let h = 1; h < 12; h++) times.push({val: h, label: `오전 ${h}:00`});
-      times.push({val: 12, label: '정오 (오후 12:00)'});
-      for (let h = 1; h < 12; h++) times.push({val: 12 + h, label: `오후 ${h}:00`});
-      times.push({val: 24, label: '자정 (오전 12:00, 다음 날)'});
+      const hours = [];
+      for (let h = 1; h <= 12; h++) hours.push(h);
 
-      times.forEach(t => {
-        const opt = `<option value="${t.val}">${t.label}</option>`;
-        startSelect.insertAdjacentHTML('beforeend', opt);
-        endSelect.insertAdjacentHTML('beforeend', opt);
+      hours.forEach(h => {
+        const opt = `<option value="${h}">${h}시</option>`;
+        startHour.insertAdjacentHTML('beforeend', opt);
+        endHour.insertAdjacentHTML('beforeend', opt);
       });
-      startSelect.value = 7;
-      endSelect.value = 22;
+      startHour.value = 7;
+      endHour.value = 10;
+      updateAmpmDisplay();
     }
+
+    function updateAmpmDisplay() {
+      const startH = parseInt(startHour.value);
+      const endH = parseInt(endHour.value);
+      startAmpm.textContent = startH < 12 ? '오전' : '오후';
+      endAmpm.textContent = endH < 12 ? '오전' : '오후';
+    }
+
+    startHour.addEventListener('change', updateAmpmDisplay);
+    endHour.addEventListener('change', updateAmpmDisplay);
 
     // 타임라인 생성
     function buildTimeline() {
-      const start = parseInt(startSelect.value);
-      const end = parseInt(endSelect.value);
-      if (end <= start) return alert('취침 시간이 기상 시간보다 빠를 수 없습니다.');
+      const startH = parseInt(startHour.value);
+      const endH = parseInt(endHour.value);
+      const startAM = startAmpm.textContent === '오전';
+      const endAM = endAmpm.textContent === '오전';
+
+      let start = startH + (startAM ? 0 : 12);
+      let end = endH + (endAM ? 0 : 12);
+      if (end <= start) end += 24;
+
+      if (end - start > 24) return alert('24시간을 초과할 수 없습니다.');
 
       timeline.innerHTML = '';
       slots = [];
@@ -310,9 +337,7 @@
         const h = i % 24;
         const ampm = h < 12 ? '오전' : '오후';
         const hour = h === 0 ? 12 : h > 12 ? h - 12 : h;
-        let timeStr = `${ampm} ${hour}:00`;
-        if (i % 24 === 0) timeStr = '자정 (오전 12:00)';
-        if (i % 24 === 12) timeStr = '정오 (오후 12:00)';
+        const timeStr = `${ampm} ${hour}시`;
 
         const slot = document.createElement('div');
         slot.className = 'slot';
@@ -339,19 +364,21 @@
         ['dragleave', 'drop'].forEach(ev => {
           slot.addEventListener(ev, () => slot.classList.remove('over'));
         });
-        slot.addEventListener('drop', e => {
-          e.preventDefault();
-          slot.classList.remove('over');
-          if (draggedItem) {
-            const text = draggedItem.querySelector('.txt').textContent;
-            const type = draggedItem.dataset.type;
-            slot.querySelector('input').value = text;
-            slot.dataset.type = type;
-            if (type === 'core3') slot.classList.add('highlight');
-            draggedItem.remove();
-            saveData();
-          }
-        });
+        slot.addEventListener('drop', handleDrop);
+      }
+    }
+
+    function handleDrop(e) {
+      e.preventDefault();
+      this.classList.remove('over');
+      if (draggedItem) {
+        const text = draggedItem.querySelector('.txt').textContent;
+        const type = draggedItem.dataset.type;
+        this.querySelector('input').value = text;
+        this.dataset.type = type;
+        if (type === 'core3') this.classList.add('highlight');
+        draggedItem.remove();
+        saveData();
       }
     }
 
@@ -393,7 +420,7 @@
       saveData();
     }
 
-    // 모바일 드래그 지원 강화
+    // 모바일 드래그 & 드롭 완벽 지원
     function setupItem(li) {
       li.addEventListener('dragstart', e => {
         draggedItem = li;
@@ -404,28 +431,44 @@
         setTimeout(() => { if (draggedItem) draggedItem.style.opacity = ''; draggedItem = null; }, 0);
       });
 
-      // 모바일 터치 드래그
-      let touchStartX, touchStartY;
+      // 터치 드래그
+      let startX, startY, targetSlot = null;
       li.addEventListener('touchstart', e => {
         draggedItem = li;
         li.style.opacity = '0.5';
         const touch = e.touches[0];
-        touchStartX = touch.clientX;
-        touchStartY = touch.clientY;
+        startX = touch.clientX;
+        startY = touch.clientY;
       }, { passive: true });
 
       li.addEventListener('touchmove', e => {
         e.preventDefault();
         const touch = e.touches[0];
-        const deltaX = touch.clientX - touchStartX;
-        const deltaY = touch.clientY - touchStartY;
+        const deltaX = touch.clientX - startX;
+        const deltaY = touch.clientY - startY;
         li.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+
+        // 드롭 타겟 찾기
+        const rect = li.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        targetSlot = document.elementFromPoint(centerX, centerY);
+        if (targetSlot && targetSlot.classList.contains('slot')) {
+          document.querySelectorAll('.slot').forEach(s => s.classList.remove('over'));
+          targetSlot.classList.add('over');
+        }
       }, { passive: false });
 
       li.addEventListener('touchend', () => {
         li.style.opacity = '';
         li.style.transform = '';
+        if (targetSlot && targetSlot.classList.contains('slot')) {
+          const dropEvent = new Event('drop', { bubbles: true });
+          targetSlot.dispatchEvent(dropEvent);
+        }
+        document.querySelectorAll('.slot').forEach(s => s.classList.remove('over'));
         draggedItem = null;
+        targetSlot = null;
       });
 
       li.querySelector('.del').addEventListener('click', () => { li.remove(); saveData(); });
@@ -441,8 +484,10 @@
           highlight: slot.classList.contains('highlight'),
           type: slot.dataset.type || ''
         })),
-        start: startSelect.value,
-        end: endSelect.value
+        startHour: startHour.value,
+        startAmpm: startAmpm.textContent,
+        endHour: endHour.value,
+        endAmpm: endAmpm.textContent
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     }
@@ -451,8 +496,11 @@
       const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
       (data.bd || []).forEach(item => { const li = document.createElement('li'); li.className = 'item'; li.draggable = true; li.dataset.type = item.type; li.innerHTML = `<span class="txt">${item.text}</span><button class="del">x</button>`; bdList.appendChild(li); setupItem(li); });
       (data.c3 || []).forEach(item => { const li = document.createElement('li'); li.className = 'item'; li.draggable = true; li.dataset.type = item.type; li.innerHTML = `<span class="txt">${item.text}</span><button class="del">x</button>`; c3List.appendChild(li); setupItem(li); });
-      if (data.start) startSelect.value = data.start;
-      if (data.end) endSelect.value = data.end;
+      if (data.startHour) startHour.value = data.startHour;
+      if (data.startAmpm) startAmpm.textContent = data.startAmpm;
+      if (data.endHour) endHour.value = data.endHour;
+      if (data.endAmpm) endAmpm.textContent = data.endAmpm;
+      updateAmpmDisplay();
       buildTimeline();
       if (data.timeline) {
         data.timeline.forEach((item, i) => {
