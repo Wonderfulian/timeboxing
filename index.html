@@ -100,6 +100,7 @@
       align-items: center;
       justify-content: space-between;
       cursor: grab;
+      user-select: none;
     }
     .item:active { cursor: grabbing; }
 
@@ -117,7 +118,7 @@
       font-size: 15px;
     }
 
-    /* 타임라인 설정 (기상/취침 2줄 배치) */
+    /* 타임라인 설정 (기상/취침 2줄, 기상 라벨 폭 줄임) */
     .time-setup {
       display: grid;
       grid-template-columns: 1fr;
@@ -128,16 +129,17 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
     }
     .time-row label {
-      width: 40px;
+      width: 28px; /* 기상 라벨 폭 줄임 */
       font-weight: 600;
       font-size: 15px;
+      flex-shrink: 0;
     }
     .time-row select {
       flex: 1;
-      min-width: 120px;
+      min-width: 0;
       padding: 8px;
       border-radius: 8px;
       border: 1px solid #ddd;
@@ -215,8 +217,8 @@
       .slot { grid-template-columns: 70px 1fr 50px; }
       .slot .time { font-size: 14px; }
       .strike { padding: 4px 8px; font-size: 12px; }
-      .time-row label { width: 36px; font-size: 14px; }
-      .time-row select { font-size: 14px; }
+      .time-row label { width: 24px; font-size: 14px; }
+      .time-row select { font-size: 14px; padding: 6px; }
     }
   </style>
 </head>
@@ -253,7 +255,7 @@
       <div class="time-row">
         <label>취침</label>
         <select id="end"></select>
-        <button id="build" class="btn" style="margin-left: auto;">적용</button>
+        <button id="build" class="btn" style="margin-left: auto; min-width: 70px;">적용</button>
       </div>
     </div>
     <div id="timeline" class="timegrid"></div>
@@ -391,11 +393,43 @@
       saveData();
     }
 
-    function handleDragStart(e) { draggedItem = this; setTimeout(() => this.style.display = 'none', 0); }
-    function handleDragEnd() { setTimeout(() => { if (draggedItem) draggedItem.style.display = ''; draggedItem = null; }, 0); }
-    function handleTouchStart(e) { draggedItem = this; this.style.opacity = '0.5'; }
-    function handleTouchMove(e) { e.preventDefault(); }
-    function handleTouchEndDrag() { this.style.opacity = '1'; draggedItem = null; }
+    // 모바일 드래그 지원 강화
+    function setupItem(li) {
+      li.addEventListener('dragstart', e => {
+        draggedItem = li;
+        e.dataTransfer.setData('text/plain', '');
+        setTimeout(() => li.style.opacity = '0.5', 0);
+      });
+      li.addEventListener('dragend', () => {
+        setTimeout(() => { if (draggedItem) draggedItem.style.opacity = ''; draggedItem = null; }, 0);
+      });
+
+      // 모바일 터치 드래그
+      let touchStartX, touchStartY;
+      li.addEventListener('touchstart', e => {
+        draggedItem = li;
+        li.style.opacity = '0.5';
+        const touch = e.touches[0];
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+      }, { passive: true });
+
+      li.addEventListener('touchmove', e => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - touchStartX;
+        const deltaY = touch.clientY - touchStartY;
+        li.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+      }, { passive: false });
+
+      li.addEventListener('touchend', () => {
+        li.style.opacity = '';
+        li.style.transform = '';
+        draggedItem = null;
+      });
+
+      li.querySelector('.del').addEventListener('click', () => { li.remove(); saveData(); });
+    }
 
     function saveData() {
       const data = {
@@ -430,15 +464,6 @@
           }
         });
       }
-    }
-
-    function setupItem(li) {
-      li.addEventListener('dragstart', handleDragStart);
-      li.addEventListener('dragend', handleDragEnd);
-      li.addEventListener('touchstart', handleTouchStart);
-      li.addEventListener('touchmove', handleTouchMove);
-      li.addEventListener('touchend', handleTouchEndDrag);
-      li.querySelector('.del').addEventListener('click', () => { li.remove(); saveData(); });
     }
 
     pdfBtn.addEventListener('click', () => {
