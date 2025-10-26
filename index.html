@@ -18,7 +18,8 @@
   <link rel="icon" href="icon-512.png" sizes="512x512" />
   <link rel="apple-touch-icon" href="icon-512.png" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
     :root {
@@ -74,7 +75,7 @@
     .slot .time { font-weight: 600; font-size: 15px; white-space: nowrap; display: flex; gap: 6px; }
     .slot .time .label { font-weight: 700; color: var(--accent); }
     .slot input { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ddd; font-size: 15px; text-align: center; background: transparent; }
-    .slot.done { text-decoration: line-through; color: #777; opacity: 0.7; } /* 전체 슬롯에 줄 */
+    .slot.done { text-decoration: line-through; color: #777; opacity: 0.7; }
     .slot.done input { text-decoration: inherit; color: inherit; }
     .slot.bd { background: var(--bd-color); }
     .slot.highlight { background: var(--core); }
@@ -189,7 +190,7 @@
     }
 
     function buildTimeline() {
-    const sh = parseInt(startHour.value), eh = parseInt(endHour.value);
+      const sh = parseInt(startHour.value), eh = parseInt(endHour.value);
       const startAM = startAmpm.value === '오전', endAM = endAmpm.value === '오전';
       let start = sh + (startAM ? 0 : 12);
       let end = eh + (endAM ? 0 : 12);
@@ -198,7 +199,6 @@
       timeline.innerHTML = ''; slots = [];
       let isFirst = true;
 
-      // 수정 1: i < end → i <= end (취침 시간 포함)
       for (let i = start; i <= end; i++) {
         const h = i % 24;
         const ampm = h < 12 ? '오전' : '오후';
@@ -208,7 +208,6 @@
         slot.className = 'slot';
         slot.dataset.index = i;
 
-        // 수정 2: i === end - 1 → i === end (정확한 취침 시간 표시)
         const label = isFirst ? '<span class="label">기상</span>' : (i === end ? '<span class="label">취침</span>' : '');
         isFirst = false;
 
@@ -242,12 +241,12 @@
       slot.addEventListener('dragleave', () => {
         slot.classList.remove('over');
       });
-      slot.addEventListener('drop', handleDrop); // drop 이벤트 직접 처리
+      slot.addEventListener('drop', handleDrop);
     }
 
     function handleDrop(e) {
       e.preventDefault();
-      const slot = e.currentTarget; // 정확한 슬롯
+      const slot = e.currentTarget;
       slot.classList.remove('over');
 
       if (!draggedItem) return;
@@ -258,7 +257,6 @@
       input.value = text;
       slot.dataset.type = type;
 
-      // 배경색 적용
       slot.classList.remove('bd', 'highlight');
       if (type === 'bd') slot.classList.add('bd');
       if (type === 'core3') slot.classList.add('highlight');
@@ -406,9 +404,63 @@
       }
     }
 
-    pdfBtn.addEventListener('click', () => {
-      const opt = { margin: 0.5, filename: 'timebox-planner.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 1.5, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }};
-      html2pdf().set(opt).from(document.querySelector('.wrap')).save();
+    pdfBtn.addEventListener('click', async () => {
+      const wrap = document.querySelector('.wrap');
+      const timeline = document.getElementById('timeline');
+
+      // 원래 스타일 저장
+      const originalTimelineMaxHeight = timeline.style.maxHeight;
+      const originalTimelineOverflow = timeline.style.overflow;
+
+      // 높이 제한 해제
+      timeline.style.maxHeight = 'none';
+      timeline.style.overflow = 'visible';
+
+      // 브라우저 렌더링 대기
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      try {
+        const canvas = await html2canvas(wrap, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#fffaf2',
+          windowHeight: wrap.scrollHeight
+        });
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4'
+        });
+
+        const imgWidth = 210; // A4 width in mm
+        const pageHeight = 297; // A4 height in mm
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        // 첫 페이지
+        pdf.addImage(canvas.toDataURL('image/jpeg', 0.98), 'JPEG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        // 추가 페이지
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(canvas.toDataURL('image/jpeg', 0.98), 'JPEG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+
+        pdf.save('timebox-planner.pdf');
+      } catch (error) {
+        console.error('PDF 생성 오류:', error);
+        alert('PDF 생성 중 오류가 발생했습니다.');
+      } finally {
+        // 스타일 복구
+        timeline.style.maxHeight = originalTimelineMaxHeight;
+        timeline.style.overflow = originalTimelineOverflow;
+      }
     });
 
     bdAdd.addEventListener('click', () => addItem(bdInput, bdList, 'bd'));
