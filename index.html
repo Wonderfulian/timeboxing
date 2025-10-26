@@ -74,7 +74,7 @@
     .slot .time { font-weight: 600; font-size: 15px; white-space: nowrap; display: flex; gap: 6px; }
     .slot .time .label { font-weight: 700; color: var(--accent); }
     .slot input { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ddd; font-size: 15px; text-align: center; background: transparent; }
-    .slot.done { text-decoration: line-through; color: #777; opacity: 0.7; } /* 전체 슬롯에 줄 */
+    .slot.done { text-decoration: line-through; color: #777; opacity: 0.7; }
     .slot.done input { text-decoration: inherit; color: inherit; }
     .slot.bd { background: var(--bd-color); }
     .slot.highlight { background: var(--core); }
@@ -198,7 +198,8 @@
       timeline.innerHTML = ''; slots = [];
       let isFirst = true;
 
-      for (let i = start; i < end; i++) {
+      // 수정: i <= end → 취침 시간 포함
+      for (let i = start; i <= end; i++) {
         const h = i % 24;
         const ampm = h < 12 ? '오전' : '오후';
         const hour = h === 0 ? 12 : h > 12 ? h - 12 : h;
@@ -207,7 +208,7 @@
         slot.className = 'slot';
         slot.dataset.index = i;
 
-        const label = isFirst ? '<span class="label">기상</span>' : (i === end - 1 ? '<span class="label">취침</span>' : '');
+        const label = isFirst ? '<span class="label">기상</span>' : (i === end ? '<span class="label">취침</span>' : '');
         isFirst = false;
 
         slot.innerHTML = `
@@ -240,12 +241,12 @@
       slot.addEventListener('dragleave', () => {
         slot.classList.remove('over');
       });
-      slot.addEventListener('drop', handleDrop); // drop 이벤트 직접 처리
+      slot.addEventListener('drop', handleDrop);
     }
 
     function handleDrop(e) {
       e.preventDefault();
-      const slot = e.currentTarget; // 정확한 슬롯
+      const slot = e.currentTarget;
       slot.classList.remove('over');
 
       if (!draggedItem) return;
@@ -256,7 +257,6 @@
       input.value = text;
       slot.dataset.type = type;
 
-      // 배경색 적용
       slot.classList.remove('bd', 'highlight');
       if (type === 'bd') slot.classList.add('bd');
       if (type === 'core3') slot.classList.add('highlight');
@@ -276,7 +276,7 @@
       const slot = e.currentTarget;
       const text = slot.querySelector('input').value;
       const type = slot.dataset.type;
-      if (!text || !type) return;
+      if (!text: !text || !type) return;
 
       const list = type === 'bd' ? bdList : c3List;
       const li = document.createElement('li');
