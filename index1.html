@@ -81,7 +81,14 @@
     .time-group { display: flex; align-items: center; gap: 6px; }
     .time-group label { font-weight: 600; font-size: 15px; width: 40px; text-align: center; }
     .time-group select { padding: 8px; border-radius: 8px; border: 1px solid #ddd; font-size: 15px; min-width: 70px; }
-    .timegrid { display: grid; gap: 8px; max-height: calc(100vh - 380px); overflow-y: auto; padding-right: 4px; }
+.timegrid {
+  display: grid;
+  gap: 8px;
+  /* max-height: calc(100vh - 380px); */  /* PDF 전체 출력 위해 주석 */
+  overflow-y: auto;
+  padding-right: 4px;
+  overflow: visible !important;
+}
     .slot { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; position: relative; }
     .slot .time { font-weight: 600; font-size: 15px; white-space: nowrap; display: flex; gap: 6px; }
     .slot .time .label { font-weight: 700; color: var(--accent); }
@@ -477,7 +484,10 @@ pdfBtn.addEventListener('click', async () => {
     const canvas = await html2canvas(wrap, {
       scale: 2,
       useCORS: true,
-      backgroundColor: currentBg,  // 여기서 동적으로 적용!
+      backgroundColor: currentBg,
+      width: wrap.scrollWidth,
+      height: wrap.scrollHeight,  // 전체 높이 강제
+      windowWidth: wrap.scrollWidth,
       windowHeight: wrap.scrollHeight
     });
 
@@ -516,7 +526,6 @@ pdfBtn.addEventListener('click', async () => {
     timeline.style.overflow = originalTimelineOverflow;
   }
 });
-
     bdAdd.addEventListener('click', () => addItem(bdInput, bdList, 'bd'));
     c3Add.addEventListener('click', () => addItem(c3Input, c3List, 'core3'));
     buildBtn.addEventListener('click', buildTimeline);
