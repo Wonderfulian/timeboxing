@@ -80,7 +80,7 @@
       color: white !important; 
       font-weight: 600; 
       font-size: 15px; 
-      min-width: 90px; 
+      minacti-width: 90px; 
     }
 
     h2 { 
@@ -143,7 +143,7 @@
       overflow: visible !important;
     }
 
-    /* 핵심 수정: .slot 배경도 테마 따라감 */
+    /* 핵심: .slot 배경도 테마 따라감 */
     .slot { 
       display: grid; 
       grid-template-columns: 1fr auto; 
@@ -166,6 +166,7 @@
 
     .slot .time .label { font-weight: 700; color: var(--fixed-accent) !important; }
 
+    /* 어두운 배경에서도 입력창 가독성 확보 */
     .slot input { 
       width: 100%; 
       padding: 8px; 
@@ -173,14 +174,15 @@
       border: 1px solid #ddd; 
       font-size: 15px; 
       text-align: center; 
-      background: rgba(255,255,255,0.7); /* 약간 투명한 흰색으로 가독성 확보 */
+      background: rgba(255, 255, 255, 0.9) !important;
+      color: #000 !important;
     }
 
     .slot.done { text-decoration: line-through; color: #777; opacity: 0.7; }
     .slot.done input { text-decoration: inherit; color: inherit; }
     .slot.bd { background: var(--bd-color) !important; }
     .slot.highlight { background: var(--core) !important; }
-    .slot.over { border: 2px dashed var(--fixed-accent) !important; background: rgba(240,245,255,0.8) !important; }
+    .slot.over { border: 2px dashed var(--fixed-accent) !important; background: rgba(240,245,255,0.9) !important; }
 
     .strike {
       background: #ccc;
@@ -517,12 +519,12 @@
       }
     }
 
-    // === 프리미엄 테마 전환 (진짜 숲색 적용) ===
+    // === 프리미엄 테마 전환 (포레스트 정확히 #014325) ===
     let themeIndex = 0;
     const themes = [
       { bg: '#fffaf2' },        // 크림
       { bg: '#fdf2f8' },        // 핑크
-      { bg: '#e8f5e9' },        // 포레스트 (진짜 숲색)
+      { bg: '#014325' },        // 포레스트 (사용자 지정 진짜 숲색)
       { bg: '#1a1f2d' }         // 다크네이비
     ];
 
