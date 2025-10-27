@@ -24,12 +24,13 @@
   <style>
     :root {
       --bg: #fffaf2;           /* 크림 */
-      --text: #1c1c1c;         /* 본문 글자색 고정 */
+      --text: #1c1c1c;         /* 기본 텍스트 */
+      --btn-bg: #4c6ef5;       /* 기본 버튼 */
+      --date-color: #1c1c1c;  /* 기본 날짜 */
       --core: #fff2b2;
       --bd-color: #f0f0f0;
       --border: #dee2e6;
       --radius: 14px;
-      --fixed-accent: #4c6ef5; /* 모든 테마에서 동일 */
     }
 
     * {
@@ -69,18 +70,23 @@
       gap: 8px; 
     }
 
-    .today { font-weight: 700; font-size: 18px; white-space: nowrap; }
+    .today { 
+      font-weight: 700; 
+      font-size: 18px; 
+      white-space: nowrap; 
+      color: var(--date-color) !important; 
+    }
 
     .btn { 
       cursor: pointer; 
       border: none; 
       border-radius: 10px; 
       padding: 8px 14px; 
-      background: var(--fixed-accent) !important; 
+      background: var(--btn-bg) !important; 
       color: white !important; 
       font-weight: 600; 
       font-size: 15px; 
-      minacti-width: 90px; 
+      min-width: 90px; 
     }
 
     h2 { 
@@ -88,7 +94,7 @@
       align-items: center; 
       gap: 6px; 
       margin: 14px 0 8px; 
-      color: var(--fixed-accent) !important; 
+      color: var(--btn-bg) !important; 
       font-size: 20px; 
       font-weight: 700; 
     }
@@ -143,7 +149,6 @@
       overflow: visible !important;
     }
 
-    /* 핵심: .slot 배경도 테마 따라감 */
     .slot { 
       display: grid; 
       grid-template-columns: 1fr auto; 
@@ -164,9 +169,8 @@
       gap: 6px; 
     }
 
-    .slot .time .label { font-weight: 700; color: var(--fixed-accent) !important; }
+    .slot .time .label { font-weight: 700; color: var(--btn-bg) !important; }
 
-    /* 어두운 배경에서도 입력창 가독성 확보 */
     .slot input { 
       width: 100%; 
       padding: 8px; 
@@ -182,7 +186,7 @@
     .slot.done input { text-decoration: inherit; color: inherit; }
     .slot.bd { background: var(--bd-color) !important; }
     .slot.highlight { background: var(--core) !important; }
-    .slot.over { border: 2px dashed var(--fixed-accent) !important; background: rgba(240,245,255,0.9) !important; }
+    .slot.over { border: 2px dashed var(--btn-bg) !important; background: rgba(240,245,255,0.9) !important; }
 
     .strike {
       background: #ccc;
@@ -519,28 +523,33 @@
       }
     }
 
-    // === 프리미엄 테마 전환 (포레스트 정확히 #014325) ===
+    // === 프리미엄 테마 전환 (버튼 + 날짜 자동 조정) ===
     let themeIndex = 0;
     const themes = [
-      { bg: '#fffaf2' },        // 크림
-      { bg: '#fdf2f8' },        // 핑크
-      { bg: '#014325' },        // 포레스트 (사용자 지정 진짜 숲색)
-      { bg: '#1a1f2d' }         // 다크네이비
+      { bg: '#fffaf2', btn: '#4c6ef5', date: '#1c1c1c' }, // 크림
+      { bg: '#fdf2f8', btn: '#d63384', date: '#1c1c1c' }, // 핑크
+      { bg: '#014325', btn: '#f39c12', date: '#f1f8e9' }, // 포레스트
+      { bg: '#1a1f2d', btn: '#5c7cfa', date: '#e0e7ff' }  // 다크네이비
     ];
+
+    function applyTheme(index) {
+      const t = themes[index];
+      document.documentElement.style.setProperty('--bg', t.bg);
+      document.documentElement.style.setProperty('--btn-bg', t.btn);
+      document.documentElement.style.setProperty('--date-color', t.date);
+      localStorage.setItem('timebox-theme', index);
+    }
 
     themeBtn.addEventListener('click', () => {
       themeIndex = (themeIndex + 1) % themes.length;
-      const t = themes[themeIndex];
-      document.documentElement.style.setProperty('--bg', t.bg);
-      localStorage.setItem('timebox-theme', themeIndex);
+      applyTheme(themeIndex);
     });
 
     window.addEventListener('load', () => {
       const saved = localStorage.getItem('timebox-theme');
       if (saved) {
         themeIndex = parseInt(saved);
-        const t = themes[themeIndex];
-        document.documentElement.style.setProperty('--bg', t.bg);
+        applyTheme(themeIndex);
       }
     });
 
