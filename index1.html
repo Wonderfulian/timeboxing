@@ -24,13 +24,14 @@
   <style>
     :root {
       --bg: #fffaf2;
-      --accent: #4c6ef5;
+      --text: #1c1c1c;
       --core: #fff2b2;
       --bd-color: #f0f0f0;
-      --text: #1c1c1c;
-      --done: #e9ecef;
       --border: #dee2e6;
       --radius: 14px;
+
+      /* 고정 색상 (모든 테마에서 동일) */
+      --fixed-accent: #4c6ef5;
     }
     * {
       box-sizing: border-box;
@@ -71,8 +72,8 @@
       border: none; 
       border-radius: 10px; 
       padding: 8px 14px; 
-      background: var(--accent); 
-      color: white; 
+      background: var(--fixed-accent) !important; 
+      color: white !important; 
       font-weight: 600; 
       font-size: 15px; 
       min-width: 90px; 
@@ -82,7 +83,7 @@
       align-items: center; 
       gap: 6px; 
       margin: 14px 0 8px; 
-      color: var(--accent); 
+      color: var(--fixed-accent) !important; 
       font-size: 20px; 
       font-weight: 700; 
     }
@@ -127,7 +128,6 @@
     .timegrid {
       display: grid;
       gap: 8px;
-      /* max-height: calc(100vh - 380px); */
       overflow-y: auto;
       padding-right: 4px;
       overflow: visible !important;
@@ -150,7 +150,7 @@
       display: flex; 
       gap: 6px; 
     }
-    .slot .time .label { font-weight: 700; color: var(--accent); }
+    .slot .time .label { font-weight: 700; color: var(--fixed-accent) !important; }
     .slot input { 
       width: 100%; 
       padding: 8px; 
@@ -164,7 +164,7 @@
     .slot.done input { text-decoration: inherit; color: inherit; }
     .slot.bd { background: var(--bd-color); }
     .slot.highlight { background: var(--core); }
-    .slot.over { border: 2px dashed var(--accent); background: #f0f5ff; }
+    .slot.over { border: 2px dashed var(--fixed-accent) !important; background: #f0f5ff; }
 
     .strike {
       background: #ccc;
@@ -247,7 +247,6 @@
   </div>
 
   <script>
-    // === 요소 선언 ===
     const todayEl = document.getElementById('today');
     const bdInput = document.getElementById('bd-input'), bdAdd = document.getElementById('bd-add'), bdList = document.getElementById('bd-list');
     const c3Input = document.getElementById('c3-input'), c3Add = document.getElementById('c3-add'), c3List = document.getElementById('c3-list');
@@ -264,7 +263,7 @@
     let draggedItem = null;
     let autoScrollInterval = null;
 
-    // === 오늘 날짜 표시 ===
+    // === 오늘 날짜 ===
     const now = new Date(), days = ['일','월','화','수','목','금','토'];
     todayEl.textContent = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} (${days[now.getDay()]})`;
 
@@ -313,7 +312,6 @@
       }
     }
 
-    // === 슬롯 설정 ===
     function setupSlot(slot) {
       slot.addEventListener('dblclick', handleSlotDblClick);
       slot.addEventListener('touchend', handleTouchEnd);
@@ -503,38 +501,32 @@
       }
     }
 
-    // === 색상 테마 전환 ===
+    // === 프리미엄 테마 전환 (버튼 텍스트는 항상 "색상") ===
     let themeIndex = 0;
     const themes = [
-      { name: '기본', bg: '#fffaf2', accent: '#4c6ef5', text: '#1c1c1c' },
-      { name: '크림', bg: '#fffaf2', accent: '#4c6ef5', text: '#1c1c1c' },
-      { name: '포레스트', bg: '#f0f7f4', accent: '#2b8a3e', text: '#1a3c34' },
-      { name: '다크네이비', bg: '#1a1f2d', accent: '#4dabf7', text: '#e0e7ff' }
+      { bg: '#fffaf2', text: '#1c1c1c' },        // 크림 (기본)
+      { bg: '#f5f5f5', text: '#333333' },        // 도브그레이
+      { bg: '#f0f7f4', text: '#1a3c34' },        // 포레스트
+      { bg: '#1a1f2d', text: '#e0e7ff' }         // 다크네이비
     ];
 
-    if (themeBtn) {
-      themeBtn.addEventListener('click', () => {
-        themeIndex = (themeIndex + 1) % themes.length;
+    themeBtn.addEventListener('click', () => {
+      themeIndex = (themeIndex + 1) % themes.length;
+      const t = themes[themeIndex];
+      document.documentElement.style.setProperty('--bg', t.bg);
+      document.documentElement.style.setProperty('--text', t.text);
+      localStorage.setItem('timebox-theme', themeIndex);
+    });
+
+    window.addEventListener('load', () => {
+      const saved = localStorage.getItem('timebox-theme');
+      if (saved) {
+        themeIndex = parseInt(saved);
         const t = themes[themeIndex];
         document.documentElement.style.setProperty('--bg', t.bg);
-        document.documentElement.style.setProperty('--accent', t.accent);
         document.documentElement.style.setProperty('--text', t.text);
-        themeBtn.textContent = t.name === '기본' ? '색상' : t.name;
-        localStorage.setItem('timebox-theme', themeIndex);
-      });
-
-      window.addEventListener('load', () => {
-        const saved = localStorage.getItem('timebox-theme');
-        if (saved) {
-          themeIndex = parseInt(saved);
-          const t = themes[themeIndex];
-          document.documentElement.style.setProperty('--bg', t.bg);
-          document.documentElement.style.setProperty('--accent', t.accent);
-          document.documentElement.style.setProperty('--text', t.text);
-          themeBtn.textContent = t.name === '기본' ? '색상' : t.name;
-        }
-      });
-    }
+      }
+    });
 
     // === PDF 전체 출력 ===
     pdfBtn.addEventListener('click', async () => {
