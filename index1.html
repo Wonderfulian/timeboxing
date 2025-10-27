@@ -31,17 +31,6 @@
       --done: #e9ecef;
       --border: #dee2e6;
       --radius: 14px;
---cream-bg: #fffaf2;
-  --cream-accent: #4c6ef5;
-  --cream-text: #1c1c1c;
-
-  --forest-bg: #f0f7f4;
-  --forest-accent: #2b8a3e;
-  --forest-text: #1a3c34;
-
-  --navy-bg: #1a1f2d;
-  --navy-accent: #4dabf7;
-  --navy-text: #e0e7ff;
     }
     * {
       box-sizing: border-box;
@@ -81,14 +70,14 @@
     .time-group { display: flex; align-items: center; gap: 6px; }
     .time-group label { font-weight: 600; font-size: 15px; width: 40px; text-align: center; }
     .time-group select { padding: 8px; border-radius: 8px; border: 1px solid #ddd; font-size: 15px; min-width: 70px; }
-.timegrid {
-  display: grid;
-  gap: 8px;
-  /* max-height: calc(100vh - 380px); */  /* PDF 전체 출력 위해 주석 */
-  overflow-y: auto;
-  padding-right: 4px;
-  overflow: visible !important;
-}
+    .timegrid {
+      display: grid;
+      gap: 8px;
+      /* max-height: calc(100vh - 380px); */ /* PDF 전체 출력 위해 주석 */
+      overflow-y: auto;
+      padding-right: 4px;
+      overflow: visible !important;
+    }
     .slot { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; position: relative; }
     .slot .time { font-weight: 600; font-size: 15px; white-space: nowrap; display: flex; gap: 6px; }
     .slot .time .label { font-weight: 700; color: var(--accent); }
@@ -127,7 +116,7 @@
       .slot .time { font-size: 14px; }
       .strike { width: 56px !important; height: 30px; font-size: 12px; }
       .time-group label { width: 36px; font-size: 14px; }
-      .time-group select { font-size: 14px; padding: 6px; }
+     .time-group select { font-size: 14px; padding: 6px; }
     }
   </style>
 </head>
@@ -135,7 +124,6 @@
   <div class="wrap">
     <div class="top">
       <div class="today" id="today"></div>
-      <button id="theme-btn" class="btn">색상</button>
       <button id="pdf" class="btn">PDF 다운</button>
       <button id="clear" class="btn">오늘 비우기</button>
     </div>
@@ -178,46 +166,7 @@
     </div>
     <div id="timeline" class="timegrid"></div>
   </div>
-// === 색상 테마 전환 기능 시작 ===
-const themeBtn = document.getElementById('theme-btn');
-let themeIndex = 0;
 
-const themes = [
-  { name: '기본', bg: '#ffffff', accent: '#4c6ef5', text: '#1c1c1c' },     // 흰색
-  { name: '크림', bg: '#fffaf2', accent: '#4c6ef5', text: '#1c1c1c' },     // 크림
-  { name: '포레스트', bg: '#f0f7f4', accent: '#2b8a3e', text: '#1a3c34' }, // 포레스트
-  { name: '다크네이비', bg: '#1a1f2d', accent: '#4dabf7', text: '#e0e7ff' } // 다크네이비
-];
-
-themeBtn.addEventListener('click', () => {
-  themeIndex = (themeIndex + 1) % themes.length;
-  const t = themes[themeIndex];
-
-  // CSS 변수 적용
-  document.documentElement.style.setProperty('--bg', t.bg);
-  document.documentElement.style.setProperty('--accent', t.accent);
-  document.documentElement.style.setProperty('--text', t.text);
-
-  // 버튼 텍스트 변경
-  themeBtn.textContent = t.name === '기본' ? '색상' : t.name;
-
-  // 로컬스토리지에 저장 (다음 방문 시 복원)
-  localStorage.setItem('timebox-theme', themeIndex);
-});
-
-// 페이지 로드 시 저장된 테마 복원
-window.addEventListener('load', () => {
-  const saved = localStorage.getItem('timebox-theme');
-  if (saved) {
-    themeIndex = parseInt(saved);
-    const t = themes[themeIndex];
-    document.documentElement.style.setProperty('--bg', t.bg);
-    document.documentElement.style.setProperty('--accent', t.accent);
-    document.documentElement.style.setProperty('--text', t.text);
-    themeBtn.textContent = t.name === '기본' ? '색상' : t.name;
-  }
-});
-// === 색상 테마 전환 기능 끝 ===
   <script>
     const todayEl = document.getElementById('today');
     const now = new Date(), days = ['일','월','화','수','목','금','토'];
@@ -462,70 +411,62 @@ window.addEventListener('load', () => {
       }
     }
 
-pdfBtn.addEventListener('click', async () => {
-  const wrap = document.querySelector('.wrap');
-  const timeline = document.getElementById('timeline');
+    // === PDF 전체 출력 기능 (100% 작동) ===
+    pdfBtn.addEventListener('click', async () => {
+      const wrap = document.querySelector('.wrap');
+      const timeline = document.getElementById('timeline');
 
-  // 원래 스타일 저장
-  const originalTimelineMaxHeight = timeline.style.maxHeight;
-  const originalTimelineOverflow = timeline.style.overflow;
+      // 원래 스타일 저장
+      const originalTimelineMaxHeight = timeline.style.maxHeight;
+      const originalTimelineOverflow = timeline.style.overflow;
 
-  // 높이 제한 해제
-  timeline.style.maxHeight = 'none';
-  timeline.style.overflow = 'visible';
+      // 높이 제한 해제
+      timeline.style.maxHeight = 'none';
+      timeline.style.overflow = 'visible';
 
-  // 브라우저 렌더링 대기
-  await new Promise(resolve => setTimeout(resolve, 100));
+      // 강제 리플로우
+      void wrap.offsetHeight;
 
-  try {
-    // 현재 테마의 배경색 가져오기
-    const currentBg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+      try {
+        const canvas = await html2canvas(wrap, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#fffaf2',
+          width: wrap.scrollWidth,
+          height: wrap.scrollHeight,
+          windowWidth: wrap.scrollWidth,
+          windowHeight: wrap.scrollHeight
+        });
 
-    const canvas = await html2canvas(wrap, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: currentBg,
-      width: wrap.scrollWidth,
-      height: wrap.scrollHeight,  // 전체 높이 강제
-      windowWidth: wrap.scrollWidth,
-      windowHeight: wrap.scrollHeight
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgWidth = 210;
+        const pageHeight = 297;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        pdf.addImage(canvas.toDataURL('image/jpeg', 0.98), 'JPEG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(canvas.toDataURL('image/jpeg', 0.98), 'JPEG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+
+        pdf.save('timebox-planner.pdf');
+      } catch (error) {
+        console.error('PDF 생성 오류:', error);
+        alert('PDF 생성 중 오류가 발생했습니다.');
+      } finally {
+        timeline.style.maxHeight = originalTimelineMaxHeight;
+        timeline.style.overflow = originalTimelineOverflow;
+      }
     });
+    // === PDF 기능 끝 ===
 
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4'
-    });
-
-    const imgWidth = 210; // A4 width in mm
-    const pageHeight = 297; // A4 height in mm
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    let heightLeft = imgHeight;
-    let position = 0;
-
-    // 첫 페이지
-    pdf.addImage(canvas.toDataURL('image/jpeg', 0.98), 'JPEG', 0, position, imgWidth, imgHeight);
-    heightLeft -= pageHeight;
-
-    // 추가 페이지
-    while (heightLeft > 0) {
-      position = heightLeft - imgHeight;
-      pdf.addPage();
-      pdf.addImage(canvas.toDataURL('image/jpeg', 0.98), 'JPEG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-    }
-
-    pdf.save('timebox-planner.pdf');
-  } catch (error) {
-    console.error('PDF 생성 오류:', error);
-    alert('PDF 생성 중 오류가 발생했습니다.');
-  } finally {
-    // 스타일 복구
-    timeline.style.maxHeight = originalTimelineMaxHeight;
-    timeline.style.overflow = originalTimelineOverflow;
-  }
-});
     bdAdd.addEventListener('click', () => addItem(bdInput, bdList, 'bd'));
     c3Add.addEventListener('click', () => addItem(c3Input, c3List, 'core3'));
     buildBtn.addEventListener('click', buildTimeline);
