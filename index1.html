@@ -54,7 +54,7 @@
     .wrap {
       width: 100%;
       max-width: 720px;
-      background: #fff;
+      background: var(--bg) !important; /* 핵심 수정: 테마 배경 반영 */
       border-radius: var(--radius);
       box-shadow: 0 6px 20px rgba(0,0,0,.08);
       padding: 20px;
@@ -426,7 +426,7 @@
         li.style.opacity = '0.5';
         const touch = e.touches[0];
         startX = touch.clientX;
-        startY = touch.clientY;
+ startY = touch.clientY;
       }, { passive: true });
 
       li.addEventListener('touchmove', e => {
@@ -496,7 +496,7 @@
         const li = document.createElement('li'); 
         li.className = 'item'; li.draggable = true; li.dataset.type = item.type; 
         li.innerHTML = `<span class="txt">${item.text}</span><button class="del">x</button>`; 
-        c3List.appendChild(li); setupItem(li); 
+        c100List.appendChild(li); setupItem(li); 
       });
       if (data.startHour) startHour.value = data.startHour;
       if (data.startAmpm) startAmpm.value = data.startAmpm;
@@ -516,12 +516,12 @@
       }
     }
 
-    // === 프리미엄 테마 전환 (배경만 변경, 글자색 고정) ===
+    // === 프리미엄 테마 전환 (배경만 변경) ===
     let themeIndex = 0;
     const themes = [
       { bg: '#fffaf2' },        // 크림
-      { bg: '#fdf2f8' },        // 핑크 (구 도브그레이)
-      { bg: '#f0f7f4' },        // 포레스트
+      { bg: '#fdf2f8' },        // 핑크
+      { bg: '#f0f7f4' },        // 포레스트 (정확히 적용)
       { bg: '#1a1f2d' }         // 다크네이비
     ];
 
