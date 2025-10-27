@@ -171,7 +171,46 @@
     </div>
     <div id="timeline" class="timegrid"></div>
   </div>
+// === 색상 테마 전환 기능 시작 ===
+const themeBtn = document.getElementById('theme-btn');
+let themeIndex = 0;
 
+const themes = [
+  { name: '기본', bg: '#ffffff', accent: '#4c6ef5', text: '#1c1c1c' },     // 흰색
+  { name: '크림', bg: '#fffaf2', accent: '#4c6ef5', text: '#1c1c1c' },     // 크림
+  { name: '포레스트', bg: '#f0f7f4', accent: '#2b8a3e', text: '#1a3c34' }, // 포레스트
+  { name: '다크네이비', bg: '#1a1f2d', accent: '#4dabf7', text: '#e0e7ff' } // 다크네이비
+];
+
+themeBtn.addEventListener('click', () => {
+  themeIndex = (themeIndex + 1) % themes.length;
+  const t = themes[themeIndex];
+
+  // CSS 변수 적용
+  document.documentElement.style.setProperty('--bg', t.bg);
+  document.documentElement.style.setProperty('--accent', t.accent);
+  document.documentElement.style.setProperty('--text', t.text);
+
+  // 버튼 텍스트 변경
+  themeBtn.textContent = t.name === '기본' ? '색상' : t.name;
+
+  // 로컬스토리지에 저장 (다음 방문 시 복원)
+  localStorage.setItem('timebox-theme', themeIndex);
+});
+
+// 페이지 로드 시 저장된 테마 복원
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('timebox-theme');
+  if (saved) {
+    themeIndex = parseInt(saved);
+    const t = themes[themeIndex];
+    document.documentElement.style.setProperty('--bg', t.bg);
+    document.documentElement.style.setProperty('--accent', t.accent);
+    document.documentElement.style.setProperty('--text', t.text);
+    themeBtn.textContent = t.name === '기본' ? '색상' : t.name;
+  }
+});
+// === 색상 테마 전환 기능 끝 ===
   <script>
     const todayEl = document.getElementById('today');
     const now = new Date(), days = ['일','월','화','수','목','금','토'];
