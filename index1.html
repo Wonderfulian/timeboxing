@@ -23,16 +23,15 @@
 
   <style>
     :root {
-      --bg: #fffaf2;
-      --text: #1c1c1c;
+      --bg: #fffaf2;           /* 크림 */
+      --text: #1c1c1c;         /* 본문 글자색 고정 */
       --core: #fff2b2;
       --bd-color: #f0f0f0;
       --border: #dee2e6;
       --radius: 14px;
-
-      /* 고정 색상 (모든 테마에서 동일) */
-      --fixed-accent: #4c6ef5;
+      --fixed-accent: #4c6ef5; /* 모든 테마에서 동일 */
     }
+
     * {
       box-sizing: border-box;
       font-family: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -42,6 +41,7 @@
       color: var(--text);
       touch-action: manipulation;
     }
+
     body {
       background: var(--bg);
       margin: 0;
@@ -50,6 +50,7 @@
       justify-content: center;
       overflow-x: hidden;
     }
+
     .wrap {
       width: 100%;
       max-width: 720px;
@@ -58,6 +59,7 @@
       box-shadow: 0 6px 20px rgba(0,0,0,.08);
       padding: 20px;
     }
+
     .top { 
       display: flex; 
       justify-content: space-between; 
@@ -66,7 +68,9 @@
       flex-wrap: wrap; 
       gap: 8px; 
     }
+
     .today { font-weight: 700; font-size: 18px; white-space: nowrap; }
+
     .btn { 
       cursor: pointer; 
       border: none; 
@@ -78,6 +82,7 @@
       font-size: 15px; 
       min-width: 90px; 
     }
+
     h2 { 
       display: flex; 
       align-items: center; 
@@ -87,6 +92,7 @@
       font-size: 20px; 
       font-weight: 700; 
     }
+
     .list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
     .item { 
       background: #f3f6ff; 
@@ -101,6 +107,7 @@
       user-select: none; 
     }
     .item:active { cursor: grabbing; }
+
     .adder { display: flex; gap: 8px; margin-bottom: 8px; }
     .adder input { 
       flex: 1; 
@@ -109,6 +116,7 @@
       border: 1px solid #d0d7e2; 
       font-size: 15px; 
     }
+
     .time-setup { 
       display: flex; 
       gap: 12px; 
@@ -116,6 +124,7 @@
       flex-wrap: wrap; 
       align-items: center; 
     }
+
     .time-group { display: flex; align-items: center; gap: 6px; }
     .time-group label { font-weight: 600; font-size: 15px; width: 40px; text-align: center; }
     .time-group select { 
@@ -125,6 +134,7 @@
       font-size: 15px; 
       min-width: 70px; 
     }
+
     .timegrid {
       display: grid;
       gap: 8px;
@@ -132,6 +142,7 @@
       padding-right: 4px;
       overflow: visible !important;
     }
+
     .slot { 
       display: grid; 
       grid-template-columns: 1fr auto; 
@@ -143,6 +154,7 @@
       padding: 6px 8px; 
       position: relative; 
     }
+
     .slot .time { 
       font-weight: 600; 
       font-size: 15px; 
@@ -150,7 +162,9 @@
       display: flex; 
       gap: 6px; 
     }
+
     .slot .time .label { font-weight: 700; color: var(--fixed-accent) !important; }
+
     .slot input { 
       width: 100%; 
       padding: 8px; 
@@ -160,6 +174,7 @@
       text-align: center; 
       background: transparent; 
     }
+
     .slot.done { text-decoration: line-through; color: #777; opacity: 0.7; }
     .slot.done input { text-decoration: inherit; color: inherit; }
     .slot.bd { background: var(--bd-color); }
@@ -501,20 +516,19 @@
       }
     }
 
-    // === 프리미엄 테마 전환 (버튼 텍스트는 항상 "색상") ===
+    // === 프리미엄 테마 전환 (배경만 변경, 글자색 고정) ===
     let themeIndex = 0;
     const themes = [
-      { bg: '#fffaf2', text: '#1c1c1c' },        // 크림 (기본)
-      { bg: '#f5f5f5', text: '#333333' },        // 도브그레이
-      { bg: '#f0f7f4', text: '#1a3c34' },        // 포레스트
-      { bg: '#1a1f2d', text: '#e0e7ff' }         // 다크네이비
+      { bg: '#fffaf2' },        // 크림
+      { bg: '#fdf2f8' },        // 핑크 (구 도브그레이)
+      { bg: '#f0f7f4' },        // 포레스트
+      { bg: '#1a1f2d' }         // 다크네이비
     ];
 
     themeBtn.addEventListener('click', () => {
       themeIndex = (themeIndex + 1) % themes.length;
       const t = themes[themeIndex];
       document.documentElement.style.setProperty('--bg', t.bg);
-      document.documentElement.style.setProperty('--text', t.text);
       localStorage.setItem('timebox-theme', themeIndex);
     });
 
@@ -524,7 +538,6 @@
         themeIndex = parseInt(saved);
         const t = themes[themeIndex];
         document.documentElement.style.setProperty('--bg', t.bg);
-        document.documentElement.style.setProperty('--text', t.text);
       }
     });
 
