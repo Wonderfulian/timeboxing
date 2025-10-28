@@ -61,7 +61,6 @@
       padding: 20px;
     }
 
-    /* 모바일 최적화: 상단 버튼 재배치 */
     .top {
       display: flex;
       flex-wrap: wrap;
@@ -162,7 +161,7 @@
       max-height: 60vh;
       overflow-y: auto;
       padding-right: 4px;
-      overflow: visible !important;
+      -webkit-overflow-scrolling: touch;
     }
 
     .slot {
@@ -240,7 +239,6 @@
 </head>
 <body>
   <div class="wrap">
-    <!-- 상단 재배치: 오늘비우기 위로, PDF 간소화 -->
     <div class="top">
       <div class="top-left">
         <div class="today" id="today"></div>
@@ -475,18 +473,22 @@
         document.querySelectorAll('.slot').forEach(s => s.classList.remove('over'));
         if (slot) slot.classList.add('over');
 
-        // 드래그 시 타임라인 자동 스크롤 복구
+        // 핵심 수정: 타임라인 자동 스크롤 완벽 복구
         const scrollThreshold = 80;
-        const scrollSpeed = 12;
+        const scrollSpeed = 15;
         clearInterval(autoScrollInterval);
 
-        if (touch.clientY < scrollThreshold) {
+        const viewportTop = window.scrollY;
+        const viewportBottom = viewportTop + window.innerHeight;
+
+        if (touch.clientY < viewportTop + scrollThreshold) {
           autoScrollInterval = setInterval(() => {
             timeline.scrollTop = Math.max(0, timeline.scrollTop - scrollSpeed);
           }, 16);
-        } else if (touch.clientY > window.innerHeight - scrollThreshold) {
+        } else if (touch.clientY > viewportBottom - scrollThreshold) {
           autoScrollInterval = setInterval(() => {
-            timeline.scrollTop = Math.min(timeline.scrollHeight, timeline.scrollTop + scrollSpeed);
+            const maxScroll = timeline.scrollHeight - timeline.clientHeight;
+            timeline.scrollTop = Math.min(maxScroll, timeline.scrollTop + scrollSpeed);
           }, 16);
         }
       }, { passive: false });
