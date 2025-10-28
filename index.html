@@ -13,9 +13,6 @@
 
   <title>타임박스 플래너</title>
   <link rel="manifest" href="/timeboxing/manifest.json" />
-  <link rel="icon" href="/timeboxing/icon-192.png" sizes="192x192" />
-  <link rel="icon" href="/timeboxing/icon-512.png" sizes="512x512" />
-  <link rel="apple-touch-icon" href="/timeboxing/icon-512.png" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -472,27 +469,35 @@
         document.querySelectorAll('.slot').forEach(s => s.classList.remove('over'));
         if (slot) slot.classList.add('over');
 
-        // 타임라인 컨테이너 기준 자동 스크롤
-        const scrollThreshold = 100;
+        // 자동 스크롤
+        const scrollThreshold = 150;
         const scrollSpeed = 20;
         clearInterval(autoScrollInterval);
 
         const timelineRect = timeline.getBoundingClientRect();
-        const relativeY = touch.clientY - timelineRect.top;
-        const maxScroll = timeline.scrollHeight - timeline.clientHeight;
-
-        // 위쪽 스크롤 (타임라인 상단 근처)
-        if (relativeY < scrollThreshold && relativeY > 0 && timeline.scrollTop > 0) {
-          autoScrollInterval = setInterval(() => {
-            timeline.scrollTop = Math.max(0, timeline.scrollTop - scrollSpeed);
-          }, 16);
-        } 
-        // 아래쪽 스크롤 (타임라인 하단 근처)
-        else if (relativeY > timelineRect.height - scrollThreshold && relativeY < timelineRect.height && timeline.scrollTop < maxScroll) {
-          autoScrollInterval = setInterval(() => {
-            const newMaxScroll = timeline.scrollHeight - timeline.clientHeight;
-            timeline.scrollTop = Math.min(newMaxScroll, timeline.scrollTop + scrollSpeed);
-          }, 16);
+        const touchY = touch.clientY;
+        const windowHeight = window.innerHeight;
+        
+        // 타임라인 영역 안에서 드래그 중인지 확인
+        const isOverTimeline = touchY >= timelineRect.top && touchY <= timelineRect.bottom;
+        
+        if (isOverTimeline) {
+          const relativeY = touchY - timelineRect.top;
+          const maxScroll = timeline.scrollHeight - timeline.clientHeight;
+          
+          // 위쪽 스크롤: 타임라인 상단 근처
+          if (relativeY < scrollThreshold && timeline.scrollTop > 0) {
+            autoScrollInterval = setInterval(() => {
+              timeline.scrollTop = Math.max(0, timeline.scrollTop - scrollSpeed);
+            }, 16);
+          }
+          // 아래쪽 스크롤: 타임라인 하단 근처 OR 화면 하단 근처
+          else if ((relativeY > timelineRect.height - scrollThreshold || touchY > windowHeight - scrollThreshold) && timeline.scrollTop < maxScroll) {
+            autoScrollInterval = setInterval(() => {
+              const newMaxScroll = timeline.scrollHeight - timeline.clientHeight;
+              timeline.scrollTop = Math.min(newMaxScroll, timeline.scrollTop + scrollSpeed);
+            }, 16);
+          }
         }
       }, { passive: false });
 
