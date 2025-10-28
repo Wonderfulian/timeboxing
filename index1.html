@@ -473,19 +473,19 @@
         document.querySelectorAll('.slot').forEach(s => s.classList.remove('over'));
         if (slot) slot.classList.add('over');
 
-        // 핵심 수정: 타임라인 자동 스크롤 완벽 복구
+        // 타임라인 컨테이너 기준 자동 스크롤
         const scrollThreshold = 80;
         const scrollSpeed = 15;
         clearInterval(autoScrollInterval);
 
-        const viewportTop = window.scrollY;
-        const viewportBottom = viewportTop + window.innerHeight;
+        const timelineRect = timeline.getBoundingClientRect();
+        const relativeY = touch.clientY - timelineRect.top;
 
-        if (touch.clientY < viewportTop + scrollThreshold) {
+        if (relativeY < scrollThreshold && timeline.scrollTop > 0) {
           autoScrollInterval = setInterval(() => {
             timeline.scrollTop = Math.max(0, timeline.scrollTop - scrollSpeed);
           }, 16);
-        } else if (touch.clientY > viewportBottom - scrollThreshold) {
+        } else if (relativeY > timelineRect.height - scrollThreshold) {
           autoScrollInterval = setInterval(() => {
             const maxScroll = timeline.scrollHeight - timeline.clientHeight;
             timeline.scrollTop = Math.min(maxScroll, timeline.scrollTop + scrollSpeed);
