@@ -473,21 +473,25 @@
         if (slot) slot.classList.add('over');
 
         // 타임라인 컨테이너 기준 자동 스크롤
-        const scrollThreshold = 80;
-        const scrollSpeed = 15;
+        const scrollThreshold = 100;
+        const scrollSpeed = 20;
         clearInterval(autoScrollInterval);
 
         const timelineRect = timeline.getBoundingClientRect();
         const relativeY = touch.clientY - timelineRect.top;
+        const maxScroll = timeline.scrollHeight - timeline.clientHeight;
 
-        if (relativeY < scrollThreshold && timeline.scrollTop > 0) {
+        // 위쪽 스크롤 (타임라인 상단 근처)
+        if (relativeY < scrollThreshold && relativeY > 0 && timeline.scrollTop > 0) {
           autoScrollInterval = setInterval(() => {
             timeline.scrollTop = Math.max(0, timeline.scrollTop - scrollSpeed);
           }, 16);
-        } else if (relativeY > timelineRect.height - scrollThreshold) {
+        } 
+        // 아래쪽 스크롤 (타임라인 하단 근처)
+        else if (relativeY > timelineRect.height - scrollThreshold && relativeY < timelineRect.height && timeline.scrollTop < maxScroll) {
           autoScrollInterval = setInterval(() => {
-            const maxScroll = timeline.scrollHeight - timeline.clientHeight;
-            timeline.scrollTop = Math.min(maxScroll, timeline.scrollTop + scrollSpeed);
+            const newMaxScroll = timeline.scrollHeight - timeline.clientHeight;
+            timeline.scrollTop = Math.min(newMaxScroll, timeline.scrollTop + scrollSpeed);
           }, 16);
         }
       }, { passive: false });
