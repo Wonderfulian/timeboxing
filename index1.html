@@ -40,7 +40,6 @@
       letter-spacing: -0.3px;
       -webkit-font-smoothing: antialiased;
       color: var(--text);
-      touch-action: manipulation;
     }
 
     body {
@@ -125,6 +124,7 @@
       justify-content: space-between;
       cursor: grab;
       user-select: none;
+      touch-action: pan-y; /* 드래그 중에도 수직 스크롤 허용 */
     }
     .item:active { cursor: grabbing; }
 
@@ -162,32 +162,45 @@
       overflow-y: auto;
       padding-right: 4px;
       -webkit-overflow-scrolling: touch;
+      touch-action: pan-y; /* 일반 스크롤 허용 */
     }
 
+    /* 핵심 수정: 정확한 2열 그리드 + 기상/취침 크기 동일 */
     .slot {
       display: grid;
       grid-template-columns: 1fr auto;
-      align-items: center;
       gap: 8px;
       background: var(--bg) !important;
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 6px 8px;
       position: relative;
+      align-items: center;
     }
 
-    .slot .time {
+    .slot-time {
       font-weight: 600;
       font-size: 15px;
       white-space: nowrap;
       display: flex;
       gap: 6px;
+      align-items: center;
     }
 
-    .slot .time .label { font-weight: 700; color: var(--btn-bg) !important; }
+    .slot-label {
+      font-weight: 700;
+      color: var(--btn-bg) !important;
+      font-size: 14px;
+    }
+
+    .slot-input-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
     .slot input {
-      width: 100%;
+      flex: 1;
       padding: 8px;
       border-radius: 6px;
       border: 1px solid #ddd;
@@ -196,12 +209,6 @@
       background: rgba(255, 255, 255, 0.9) !important;
       color: #000 !important;
     }
-
-    .slot.done { text-decoration: line-through; color: #777; opacity: 0.7; }
-    .slot.done input { text-decoration: inherit; color: inherit; }
-    .slot.bd { background: var(--bd-color) !important; }
-    .slot.highlight { background: var(--core) !important; }
-    .slot.over { border: 2px dashed var(--btn-bg) !important; background: rgba(240,245,255,0.9) !important; }
 
     .strike {
       background: #ccc;
@@ -219,6 +226,12 @@
       white-space: nowrap;
     }
 
+    .slot.done { opacity: 0.7; }
+    .slot.done * { text-decoration: line-through; color: #777; }
+    .slot.bd { background: var(--bd-color) !important; }
+    .slot.highlight { background: var(--core) !important; }
+    .slot.over { border: 2px dashed var(--btn-bg) !important; background: rgba(240,245,255,0.9) !important; }
+
     .tip { font-size: 13px; color: #777; margin-top: 6px; line-height: 1.4; }
 
     @media (max-width: 600px) {
@@ -230,7 +243,7 @@
       h2 { font-size: 18px; }
       .adder input, .item, .slot input { font-size: 14px; }
       .slot { gap: 6px; }
-      .slot .time { font-size: 14px; }
+      .slot-time { font-size: 14px; }
       .strike { width: 50px !important; height: 28px; font-size: 12px; }
       .time-group label { width: 36px; font-size: 14px; }
       .time-group select { font-size: 14px; padding: 6px; }
@@ -341,17 +354,23 @@
         slot.className = 'slot';
         slot.dataset.index = i;
 
-        const label = isFirst ? '<span class="label">기상</span>' : (i === end ? '<span class="label">취침</span>' : '');
-        isFirst = false;
+        const label = isFirst ? '기상' : (i === end ? '취침' : '');
 
         slot.innerHTML = `
-          <div class="time">${label}<span>${ampm}</span><span>${hour}시</span></div>
-          <input type="text" placeholder="여기에 드래그" readonly />
-          <button class="strike">완료</button>
+          <div class="slot-time">
+            ${label ? `<span class="slot-label">${label}</span>` : ''}
+            <span>${ampm}</span>
+            <span>${hour}시</span>
+          </div>
+          <div class="slot-input-wrapper">
+            <input type="text" placeholder="여기에 드래그" readonly />
+            <button class="strike">완료</button>
+          </div>
         `;
         timeline.appendChild(slot);
         slots.push(slot);
         setupSlot(slot);
+        isFirst = false;
       }
     }
 
@@ -458,7 +477,6 @@
       }, { passive: true });
 
       li.addEventListener('touchmove', e => {
-        e.preventDefault();
         const touch = e.touches[0];
         const deltaX = touch.clientX - startX;
         const deltaY = touch.clientY - startY;
@@ -473,25 +491,22 @@
         document.querySelectorAll('.slot').forEach(s => s.classList.remove('over'));
         if (slot) slot.classList.add('over');
 
-        // 핵심 수정: 타임라인 자동 스크롤 완벽 복구
+        // 자동 스크롤 (드래그 중에도 자연스럽게)
         const scrollThreshold = 80;
         const scrollSpeed = 15;
         clearInterval(autoScrollInterval);
 
-        const viewportTop = window.scrollY;
-        const viewportBottom = viewportTop + window.innerHeight;
-
-        if (touch.clientY < viewportTop + scrollThreshold) {
+        if (touch.clientY < scrollThreshold) {
           autoScrollInterval = setInterval(() => {
             timeline.scrollTop = Math.max(0, timeline.scrollTop - scrollSpeed);
           }, 16);
-        } else if (touch.clientY > viewportBottom - scrollThreshold) {
+        } else if (touch.clientY > window.innerHeight - scrollThreshold) {
           autoScrollInterval = setInterval(() => {
-            const maxScroll = timeline.scrollHeight - timeline.clientHeight;
-            timeline.scrollTop = Math.min(maxScroll, timeline.scrollTop + scrollSpeed);
+            const max = timeline.scrollHeight - timeline.clientHeight;
+            timeline.scrollTop = Math.min(max, timeline.scrollTop + scrollSpeed);
           }, 16);
         }
-      }, { passive: false });
+      }, { passive: true }); // preventDefault 제거 → 일반 스크롤 허용
 
       li.addEventListener('touchend', () => {
         li.style.opacity = ''; li.style.transform = '';
