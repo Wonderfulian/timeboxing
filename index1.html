@@ -23,10 +23,10 @@
 
   <style>
     :root {
-      --bg: #fffaf2;           /* 크림 */
-      --text: #1c1c1c;         /* 기본 텍스트 */
-      --btn-bg: #4c6ef5;       /* 기본 버튼 */
-      --date-color: #1c1c1c;  /* 기본 날짜 */
+      --bg: #fffaf2;
+      --text: #1c1c1c;
+      --btn-bg: #4c6ef5;
+      --date-color: #1c1c1c;
       --core: #fff2b2;
       --bd-color: #f0f0f0;
       --border: #dee2e6;
@@ -61,123 +61,139 @@
       padding: 20px;
     }
 
-    .top { 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      margin-bottom: 14px; 
-      flex-wrap: wrap; 
-      gap: 8px; 
+    /* 모바일 최적화: 상단 버튼 재배치 */
+    .top {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
     }
 
-    .today { 
-      font-weight: 700; 
-      font-size: 18px; 
-      white-space: nowrap; 
-      color: var(--date-color) !important; 
+    .top-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
-    .btn { 
-      cursor: pointer; 
-      border: none; 
-      border-radius: 10px; 
-      padding: 8px 14px; 
-      background: var(--btn-bg) !important; 
-      color: white !important; 
-      font-weight: 600; 
-      font-size: 15px; 
-      min-width: 90px; 
+    .top-right {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
     }
 
-    h2 { 
-      display: flex; 
-      align-items: center; 
-      gap: 6px; 
-      margin: 14px 0 8px; 
-      color: var(--btn-bg) !important; 
-      font-size: 20px; 
-      font-weight: 700; 
+    .today {
+      font-weight: 700;
+      font-size: 18px;
+      white-space: nowrap;
+      color: var(--date-color) !important;
+    }
+
+    .btn {
+      cursor: pointer;
+      border: none;
+      border-radius: 10px;
+      padding: 8px 12px;
+      background: var(--btn-bg) !important;
+      color: white !important;
+      font-weight: 600;
+      font-size: 14px;
+      min-width: auto;
+      white-space: nowrap;
+    }
+
+    h2 {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 14px 0 8px;
+      color: var(--btn-bg) !important;
+      font-size: 20px;
+      font-weight: 700;
     }
 
     .list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
-    .item { 
-      background: #f3f6ff; 
-      border: 1px dashed #b6c6ff; 
-      border-radius: 10px; 
-      padding: 10px; 
-      font-size: 15px; 
-      display: flex; 
-      align-items: center; 
-      justify-content: space-between; 
-      cursor: grab; 
-      user-select: none; 
+    .item {
+      background: #f3f6ff;
+      border: 1px dashed #b6c6ff;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: grab;
+      user-select: none;
     }
     .item:active { cursor: grabbing; }
 
     .adder { display: flex; gap: 8px; margin-bottom: 8px; }
-    .adder input { 
-      flex: 1; 
-      padding: 10px; 
-      border-radius: 8px; 
-      border: 1px solid #d0d7e2; 
-      font-size: 15px; 
+    .adder input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #d0d7e2;
+      font-size: 15px;
     }
 
-    .time-setup { 
-      display: flex; 
-      gap: 12px; 
-      margin-bottom: 12px; 
-      flex-wrap: wrap; 
-      align-items: center; 
+    .time-setup {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      align-items: center;
     }
 
     .time-group { display: flex; align-items: center; gap: 6px; }
     .time-group label { font-weight: 600; font-size: 15px; width: 40px; text-align: center; }
-    .time-group select { 
-      padding: 8px; 
-      border-radius: 8px; 
-      border: 1px solid #ddd; 
-      font-size: 15px; 
-      min-width: 70px; 
+    .time-group select {
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-size: 15px;
+      min-width: 70px;
     }
 
     .timegrid {
       display: grid;
       gap: 8px;
+      max-height: 60vh;
       overflow-y: auto;
       padding-right: 4px;
       overflow: visible !important;
     }
 
-    .slot { 
-      display: grid; 
-      grid-template-columns: 1fr auto; 
-      align-items: center; 
-      gap: 8px; 
-      background: var(--bg) !important; 
-      border: 1px solid var(--border); 
-      border-radius: 8px; 
-      padding: 6px 8px; 
-      position: relative; 
+    .slot {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg) !important;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 8px;
+      position: relative;
     }
 
-    .slot .time { 
-      font-weight: 600; 
-      font-size: 15px; 
-      white-space: nowrap; 
-      display: flex; 
-      gap: 6px; 
+    .slot .time {
+      font-weight: 600;
+      font-size: 15px;
+      white-space: nowrap;
+      display: flex;
+      gap: 6px;
     }
 
     .slot .time .label { font-weight: 700; color: var(--btn-bg) !important; }
 
-    .slot input { 
-      width: 100%; 
-      padding: 8px; 
-      border-radius: 6px; 
-      border: 1px solid #ddd; 
-      font-size: 15px; 
-      text-align: center; 
+    .slot input {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      font-size: 15px;
+      text-align: center;
       background: rgba(255, 255, 255, 0.9) !important;
       color: #000 !important;
     }
@@ -208,13 +224,15 @@
 
     @media (max-width: 600px) {
       .wrap { padding: 12px; }
-      .top { justify-content: center; gap: 6px; }
-      .btn { font-size: 14px; padding: 7px 10px; min-width: auto; }
+      .top { gap: 6px; }
+      .top-left { gap: 6px; }
+      .top-right { gap: 4px; }
+      .btn { font-size: 13px; padding: 6px 8px; }
       h2 { font-size: 18px; }
       .adder input, .item, .slot input { font-size: 14px; }
       .slot { gap: 6px; }
       .slot .time { font-size: 14px; }
-      .strike { width: 56px !important; height: 30px; font-size: 12px; }
+      .strike { width: 50px !important; height: 28px; font-size: 12px; }
       .time-group label { width: 36px; font-size: 14px; }
       .time-group select { font-size: 14px; padding: 6px; }
     }
@@ -222,11 +240,16 @@
 </head>
 <body>
   <div class="wrap">
+    <!-- 상단 재배치: 오늘비우기 위로, PDF 간소화 -->
     <div class="top">
-      <div class="today" id="today"></div>
-      <button id="theme-btn" class="btn">색상</button>
-      <button id="pdf" class="btn">PDF 다운</button>
-      <button id="clear" class="btn">오늘 비우기</button>
+      <div class="top-left">
+        <div class="today" id="today"></div>
+        <button id="clear" class="btn">오늘 비우기</button>
+      </div>
+      <div class="top-right">
+        <button id="theme-btn" class="btn">색상</button>
+        <button id="pdf" class="btn">PDF</button>
+      </div>
     </div>
 
     <h2>Brain Dump</h2>
@@ -452,11 +475,19 @@
         document.querySelectorAll('.slot').forEach(s => s.classList.remove('over'));
         if (slot) slot.classList.add('over');
 
-        const scrollThreshold = 100;
-        const scrollSpeed = 15;
+        // 드래그 시 타임라인 자동 스크롤 복구
+        const scrollThreshold = 80;
+        const scrollSpeed = 12;
         clearInterval(autoScrollInterval);
-        if (touch.clientY > window.innerHeight - scrollThreshold) {
-          autoScrollInterval = setInterval(() => timeline.scrollTop += scrollSpeed, 16);
+
+        if (touch.clientY < scrollThreshold) {
+          autoScrollInterval = setInterval(() => {
+            timeline.scrollTop = Math.max(0, timeline.scrollTop - scrollSpeed);
+          }, 16);
+        } else if (touch.clientY > window.innerHeight - scrollThreshold) {
+          autoScrollInterval = setInterval(() => {
+            timeline.scrollTop = Math.min(timeline.scrollHeight, timeline.scrollTop + scrollSpeed);
+          }, 16);
         }
       }, { passive: false });
 
@@ -493,17 +524,17 @@
 
     function loadData() {
       const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-      (data.bd || []).forEach(item => { 
-        const li = document.createElement('li'); 
-        li.className = 'item'; li.draggable = true; li.dataset.type = item.type; 
-        li.innerHTML = `<span class="txt">${item.text}</span><button class="del">x</button>`; 
-        bdList.appendChild(li); setupItem(li); 
+      (data.bd || []).forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'item'; li.draggable = true; li.dataset.type = item.type;
+        li.innerHTML = `<span class="txt">${item.text}</span><button class="del">x</button>`;
+        bdList.appendChild(li); setupItem(li);
       });
-      (data.c3 || []).forEach(item => { 
-        const li = document.createElement('li'); 
-        li.className = 'item'; li.draggable = true; li.dataset.type = item.type; 
-        li.innerHTML = `<span class="txt">${item.text}</span><button class="del">x</button>`; 
-        c3List.appendChild(li); setupItem(li); 
+      (data.c3 || []).forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'item'; li.draggable = true; li.dataset.type = item.type;
+        li.innerHTML = `<span class="txt">${item.text}</span><button class="del">x</button>`;
+        c3List.appendChild(li); setupItem(li);
       });
       if (data.startHour) startHour.value = data.startHour;
       if (data.startAmpm) startAmpm.value = data.startAmpm;
@@ -523,13 +554,13 @@
       }
     }
 
-    // === 프리미엄 테마 전환 (버튼 + 날짜 자동 조정) ===
+    // === 테마 시스템 ===
     let themeIndex = 0;
     const themes = [
-      { bg: '#fffaf2', btn: '#4c6ef5', date: '#1c1c1c' }, // 크림
-      { bg: '#fdf2f8', btn: '#d63384', date: '#1c1c1c' }, // 핑크
-      { bg: '#014325', btn: '#f39c12', date: '#f1f8e9' }, // 포레스트
-      { bg: '#1a1f2d', btn: '#5c7cfa', date: '#e0e7ff' }  // 다크네이비
+      { bg: '#fffaf2', btn: '#4c6ef5', date: '#1c1c1c' },
+      { bg: '#fdf2f8', btn: '#d63384', date: '#1c1c1c' },
+      { bg: '#014325', btn: '#f39c12', date: '#f1f8e9' },
+      { bg: '#1a1f2d', btn: '#5c7cfa', date: '#e0e7ff' }
     ];
 
     function applyTheme(index) {
@@ -553,11 +584,10 @@
       }
     });
 
-    // === PDF 전체 출력 ===
+    // === PDF 출력 ===
     pdfBtn.addEventListener('click', async () => {
       const wrap = document.querySelector('.wrap');
       const timeline = document.getElementById('timeline');
-
       const originalMaxHeight = timeline.style.maxHeight;
       const originalOverflow = timeline.style.overflow;
 
@@ -567,15 +597,10 @@
 
       try {
         const currentBg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
-
         const canvas = await html2canvas(wrap, {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: currentBg,
-          width: wrap.scrollWidth,
-          height: wrap.scrollHeight,
-          windowWidth: wrap.scrollWidth,
-          windowHeight: wrap.scrollHeight
+          scale: 2, useCORS: true, backgroundColor: currentBg,
+          width: wrap.scrollWidth, height: wrap.scrollHeight,
+          windowWidth: wrap.scrollWidth, windowHeight: wrap.scrollHeight
         });
 
         const { jsPDF } = window.jspdf;
@@ -610,19 +635,19 @@
     bdAdd.addEventListener('click', () => addItem(bdInput, bdList, 'bd'));
     c3Add.addEventListener('click', () => addItem(c3Input, c3List, 'core3'));
     buildBtn.addEventListener('click', buildTimeline);
-    clearBtn.addEventListener('click', () => { 
-      if (confirm('오늘 모든 데이터를 지우시겠습니까?')) { 
-        localStorage.removeItem(STORAGE_KEY); 
-        location.reload(); 
-      } 
+    clearBtn.addEventListener('click', () => {
+      if (confirm('오늘 모든 데이터를 지우시겠습니까?')) {
+        localStorage.removeItem(STORAGE_KEY);
+        location.reload();
+      }
     });
 
     [bdInput, c3Input].forEach(input => {
-      input.addEventListener('keypress', e => { 
-        if (e.key === 'Enter') { 
-          const btn = input === bdInput ? bdAdd : c3Add; 
-          btn.click(); 
-        } 
+      input.addEventListener('keypress', e => {
+        if (e.key === 'Enter') {
+          const btn = input === bdInput ? bdAdd : c3Add;
+          btn.click();
+        }
       });
     });
 
