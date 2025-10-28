@@ -470,8 +470,8 @@
         if (slot) slot.classList.add('over');
 
         // 자동 스크롤
-        const scrollThreshold = 70;  // 100 → 70 (30% 감소)
-        const scrollSpeed = 14;      // 20 → 14 (30% 감소)
+        const scrollThreshold = 100;  // 감지 영역 유지
+        const scrollSpeed = 14;       // 속도만 30% 감소
         clearInterval(autoScrollInterval);
 
         const timelineRect = timeline.getBoundingClientRect();
