@@ -2,13 +2,24 @@
   "name": "타임박스 플래너",
   "short_name": "타임박스",
   "description": "하루를 시간 단위로 관리하는 PWA 플래너",
-  "start_url": "/timeboxing/index.html",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#FFF9F2",
   "theme_color": "#4c6ef5",
   "orientation": "portrait-primary",
   "icons": [
-    { "src": "/timeboxing/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/timeboxing/icon-512.png", "sizes": "512x512", "type": "image/png" }
+    { 
+      "src": "./icon-192.png", 
+      "sizes": "192x192", 
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    { 
+      "src": "./icon-512.png", 
+      "sizes": "512x512", 
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }
