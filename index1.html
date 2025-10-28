@@ -165,6 +165,7 @@
       touch-action: pan-y;
     }
 
+    /* 핵심 수정: 모바일 넘침 완전 방지 */
     .slot {
       display: grid;
       grid-template-columns: 1fr auto;
@@ -174,6 +175,7 @@
       border-radius: 8px;
       padding: 6px 8px;
       align-items: center;
+      min-width: 0; /* 넘침 방지 */
     }
 
     .slot-time {
@@ -183,6 +185,8 @@
       display: flex;
       gap: 6px;
       align-items: center;
+      min-width: 0;
+      overflow: hidden;
     }
 
     .slot-input-wrapper {
@@ -190,6 +194,7 @@
       align-items: center;
       gap: 8px;
       width: 100%;
+      min-width: 0; /* 핵심: 넘침 방지 */
     }
 
     .slot input {
@@ -201,7 +206,7 @@
       text-align: center;
       background: rgba(255, 255, 255, 0.9) !important;
       color: #000 !important;
-      min-width: 0;
+      min-width: 0; /* 필수! */
     }
 
     .strike {
@@ -329,7 +334,7 @@
       startAmpm.value = '오전'; endAmpm.value = '오후';
     }
 
-    // === 타임라인 생성 → "기상", "취침" 글자 완전 제거 ===
+    // === 타임라인 생성 ===
     function buildTimeline() {
       const sh = parseInt(startHour.value), eh = parseInt(endHour.value);
       const startAM = startAmpm.value === '오전', endAM = endAmpm.value === '오전';
@@ -348,7 +353,6 @@
         slot.className = 'slot';
         slot.dataset.index = i;
 
-        // 기상/취침 글자 완전 제거 → 모든 칸 동일
         slot.innerHTML = `
           <div class="slot-time">
             <span>${ampm}</span>
