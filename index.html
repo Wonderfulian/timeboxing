@@ -470,29 +470,27 @@
         if (slot) slot.classList.add('over');
 
         // 자동 스크롤
-        const scrollThreshold = 150;
-        const scrollSpeed = 20;
+        const scrollThreshold = 70;  // 100 → 70 (30% 감소)
+        const scrollSpeed = 14;      // 20 → 14 (30% 감소)
         clearInterval(autoScrollInterval);
 
         const timelineRect = timeline.getBoundingClientRect();
         const touchY = touch.clientY;
-        const windowHeight = window.innerHeight;
+        const maxScroll = timeline.scrollHeight - timeline.clientHeight;
         
-        // 타임라인 영역 안에서 드래그 중인지 확인
-        const isOverTimeline = touchY >= timelineRect.top && touchY <= timelineRect.bottom;
-        
-        if (isOverTimeline) {
+        // 타임라인의 실제 보이는 영역 내에서만 체크
+        if (touchY >= timelineRect.top && touchY <= timelineRect.bottom) {
+          // 타임라인 내부 상대 위치
           const relativeY = touchY - timelineRect.top;
-          const maxScroll = timeline.scrollHeight - timeline.clientHeight;
           
-          // 위쪽 스크롤: 타임라인 상단 근처
+          // 위쪽 스크롤: 보이는 영역의 상단 근처
           if (relativeY < scrollThreshold && timeline.scrollTop > 0) {
             autoScrollInterval = setInterval(() => {
               timeline.scrollTop = Math.max(0, timeline.scrollTop - scrollSpeed);
             }, 16);
           }
-          // 아래쪽 스크롤: 타임라인 하단 근처 OR 화면 하단 근처
-          else if ((relativeY > timelineRect.height - scrollThreshold || touchY > windowHeight - scrollThreshold) && timeline.scrollTop < maxScroll) {
+          // 아래쪽 스크롤: 보이는 영역의 하단 근처 (clientHeight 기준)
+          else if (relativeY > timeline.clientHeight - scrollThreshold && timeline.scrollTop < maxScroll) {
             autoScrollInterval = setInterval(() => {
               const newMaxScroll = timeline.scrollHeight - timeline.clientHeight;
               timeline.scrollTop = Math.min(newMaxScroll, timeline.scrollTop + scrollSpeed);
