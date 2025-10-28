@@ -108,7 +108,7 @@
       justify-content: space-between;
       cursor: grab;
       user-select: none;
-      touch-action: none; /* 드래그 전용 */
+      touch-action: none;
     }
     .item:active { cursor: grabbing; }
 
@@ -136,10 +136,9 @@
       overflow-y: auto;
       padding-right: 4px;
       -webkit-overflow-scrolling: touch;
-      touch-action: pan-y; /* 일반 스크롤 허용 */
+      touch-action: pan-y;
     }
 
-    /* 핵심: 모바일 넘침 완전 방지 */
     .slot {
       display: grid;
       grid-template-columns: 1fr auto;
@@ -297,7 +296,7 @@
       startAmpm.value = '오전'; endAmpm.value = '오후';
     }
 
-    // === 타임라인 생성 (시간칸 사라짐 완전 해결) ===
+    // === 타임라인 생성 ===
     function buildTimeline() {
       const sh = parseInt(startHour.value), eh = parseInt(endHour.value);
       const startAM = startAmpm.value === '오전', endAM = endAmpm.value === '오전';
@@ -307,7 +306,7 @@
 
       timeline.innerHTML = ''; slots = [];
 
-      for (let i = start; i < end; i++) {  // i < end 로 수정 (취침 시간 포함)
+      for (let i = start; i <= end; i++) {
         const h = i % 24;
         const ampm = h < 12 ? '오전' : '오후';
         const hour = h === 0 ? 12 : h > 12 ? h - 12 : h;
@@ -435,7 +434,7 @@
       }, { passive: true });
 
       li.addEventListener('touchmove', e => {
-        e.preventDefault(); // 드래그 시 페이지 스크롤 완전 차단
+        e.preventDefault();
         const touch = e.touches[0];
         const deltaX = touch.clientX - startX;
         const deltaY = touch.clientY - startY;
@@ -450,16 +449,18 @@
         document.querySelectorAll('.slot').forEach(s => s.classList.remove('over'));
         if (slot) slot.classList.add('over');
 
-        // 자동 스크롤
+        // 핵심 수정: timeline 기준으로 스크롤 영역 판단
         const scrollThreshold = 80;
         const scrollSpeed = 15;
+        const timelineRect = timeline.getBoundingClientRect();
         clearInterval(autoScrollInterval);
 
-        if (touch.clientY < scrollThreshold) {
+        if (touch.clientY < timelineRect.top + scrollThreshold && timeline.scrollTop > 0) {
           autoScrollInterval = setInterval(() => {
             timeline.scrollTop = Math.max(0, timeline.scrollTop - scrollSpeed);
           }, 16);
-        } else if (touch.clientY > window.innerHeight - scrollThreshold) {
+        } else if (touch.clientY > timelineRect.bottom - scrollThreshold && 
+                   timeline.scrollTop < timeline.scrollHeight - timeline.clientHeight) {
           autoScrollInterval = setInterval(() => {
             const max = timeline.scrollHeight - timeline.clientHeight;
             timeline.scrollTop = Math.min(max, timeline.scrollTop + scrollSpeed);
