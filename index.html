@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="theme-color" content="#FFF9F2" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="타임박스" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="application-name" content="타임박스" />
+  <meta name="msapplication-TileColor" content="#4c6ef5" />
+
+  <title>타임박스 플래너</title>
+  <link rel="manifest" href="/timeboxing/manifest.json" />
+  <link rel="icon" href="/timeboxing/icon-192.png" sizes="192x192" />
+  <link rel="icon" href="/timeboxing/icon-512.png" sizes="512x512" />
+  <link rel="apple-touch-icon" href="/timeboxing/icon-512.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #fffaf2;
+      --text: #1c1c1c;
+      --btn-bg: #4c6ef5;
+      --date-color: #1c1c1c;
+      --core: #fff2b2;
+      --bd-color: #f0f0f0;
+      --border: #dee2e6;
+      --radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      word-spacing: normal;
+      letter-spacing: -0.3px;
+      -webkit-font-smoothing: antialiased;
+      color: var(--text);
+      touch-action: manipulation;
+    }
+
+    body {
+      background: var(--bg);
+      margin: 0;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+      overflow-x: hidden;
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 720px;
+      background: var(--bg) !important;
+      border-radius: var(--radius);
+      box-shadow: 0 6px 20px rgba(0,0,0,.08);
+      padding: 20px;
+    }
+
+    .top {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .top-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .top-right {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .today {
+      font-weight: 700;
+      font-size: 18px;
+      white-space: nowrap;
+      color: var(--date-color) !important;
+    }
+
+    .btn {
+      cursor: pointer;
+      border: none;
+      border-radius: 10px;
+      padding: 8px 12px;
+      background: var(--btn-bg) !important;
+      color: white !important;
+      font-weight: 600;
+      font-size: 14px;
+      min-width: auto;
+      white-space: nowrap;
+    }
+
+    h2 {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 14px 0 8px;
+      color: var(--btn-bg) !important;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+    .item {
+      background: #f3f6ff;
+      border: 1px dashed #b6c6ff;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: grab;
+      user-select: none;
+    }
+    .item:active { cursor: grabbing; }
+
+    .adder { display: flex; gap: 8px; margin-bottom: 8px; }
+    .adder input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #d0d7e2;
+      font-size: 15px;
+    }
+
+    .time-setup {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .time-group { display: flex; align-items: center; gap: 6px; }
+    .time-group label { font-weight: 600; font-size: 15px; width: 40px; text-align: center; }
+    .time-group select {
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-size: 15px;
+      min-width: 70px;
+    }
+
+    .timegrid {
+      display: grid;
+      gap: 8px;
+      max-height: 60vh;
+      overflow-y: auto;
+      padding-right: 4px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .slot {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg) !important;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 8px;
+      position: relative;
+    }
+
+    .slot .time {
+      font-weight: 600;
+      font-size: 15px;
+      white-space: nowrap;
+      display: flex;
+      gap: 6px;
+    }
+
+    .slot .time .label { font-weight: 700; color: var(--btn-bg) !important; }
+
+    .slot input {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      font-size: 15px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.9) !important;
+      color: #000 !important;
+    }
+
+    .slot.done { text-decoration: line-through; color: #777; opacity: 0.7; }
+    .slot.done input { text-decoration: inherit; color: inherit; }
+    .slot.bd { background: var(--bd-color) !important; }
+    .slot.highlight { background: var(--core) !important; }
+    .slot.over { border: 2px dashed var(--btn-bg) !important; background: rgba(240,245,255,0.9) !important; }
+
+    .strike {
+      background: #ccc;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 13px;
+      width: 60px !important;
+      height: 32px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+    }
+
+    .tip { font-size: 13px; color: #777; margin-top: 6px; line-height: 1.4; }
+
+    @media (max-width: 600px) {
+      .wrap { padding: 12px; }
+      .top { gap: 6px; }
+      .top-left { gap: 6px; }
+      .top-right { gap: 4px; }
+      .btn { font-size: 13px; padding: 6px 8px; }
+      h2 { font-size: 18px; }
+      .adder input, .item, .slot input { font-size: 14px; }
+      .slot { gap: 6px; }
+      .slot .time { font-size: 14px; }
+      .strike { width: 50px !important; height: 28px; font-size: 12px; }
+      .time-group label { width: 36px; font-size: 14px; }
+      .time-group select { font-size: 14px; padding: 6px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="top-left">
+        <div class="today" id="today"></div>
+        <button id="clear" class="btn">오늘 비우기</button>
+      </div>
+      <div class="top-right">
+        <button id="theme-btn" class="btn">색상</button>
+        <button id="pdf" class="btn">PDF</button>
+      </div>
+    </div>
+
+    <h2>Brain Dump</h2>
+    <div class="adder">
+      <input id="bd-input" placeholder="할 일을 입력하세요" />
+      <button id="bd-add" class="btn">+</button>
+    </div>
+    <ul id="bd-list" class="list"></ul>
+
+    <h2>Core 3</h2>
+    <div class="adder">
+      <input id="c3-input" placeholder="핵심 3가지를 입력하세요" />
+      <button id="c3-add" class="btn">+</button>
+    </div>
+    <ul id="c3-list" class="list"></ul>
+
+    <p class="tip">Tip : 항목을 드래그해 시간칸에 놓으면 자동 배치됩니다.<br>(더블탭/더블클릭으로 슬롯 초기화 & 원래 위치 복귀)</p>
+
+    <h2>타임라인</h2>
+    <div class="time-setup">
+      <div class="time-group">
+        <label>기상</label>
+        <select id="start-ampm">
+          <option value="오전">오전</option>
+          <option value="오후">오후</option>
+        </select>
+        <select id="start-hour"></select>
+      </div>
+      <div class="time-group">
+        <label>취침</label>
+        <select id="end-ampm">
+          <option value="오전">오전</option>
+          <option value="오후">오후</option>
+        </select>
+        <select id="end-hour"></select>
+      </div>
+      <button id="build" class="btn" style="margin-left: auto;">적용</button>
+    </div>
+    <div id="timeline" class="timegrid"></div>
+  </div>
+
+  <script>
+    const todayEl = document.getElementById('today');
+    const bdInput = document.getElementById('bd-input'), bdAdd = document.getElementById('bd-add'), bdList = document.getElementById('bd-list');
+    const c3Input = document.getElementById('c3-input'), c3Add = document.getElementById('c3-add'), c3List = document.getElementById('c3-list');
+    const startAmpm = document.getElementById('start-ampm'), startHour = document.getElementById('start-hour');
+    const endAmpm = document.getElementById('end-ampm'), endHour = document.getElementById('end-hour');
+    const buildBtn = document.getElementById('build');
+    const timeline = document.getElementById('timeline');
+    const clearBtn = document.getElementById('clear');
+    const pdfBtn = document.getElementById('pdf');
+    const themeBtn = document.getElementById('theme-btn');
+
+    const STORAGE_KEY = 'timebox-planner';
+    let slots = [];
+    let draggedItem = null;
+    let autoScrollInterval = null;
+
+    // === 오늘 날짜 ===
+    const now = new Date(), days = ['일','월','화','수','목','금','토'];
+    todayEl.textContent = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} (${days[now.getDay()]})`;
+
+    // === 시간 선택 초기화 ===
+    function initTimeSelects() {
+      for (let h = 1; h <= 12; h++) {
+        const opt = `<option value="${h}">${h}시</option>`;
+        startHour.insertAdjacentHTML('beforeend', opt);
+        endHour.insertAdjacentHTML('beforeend', opt);
+      }
+      startHour.value = 7; endHour.value = 10;
+      startAmpm.value = '오전'; endAmpm.value = '오후';
+    }
+
+    // === 타임라인 생성 ===
+    function buildTimeline() {
+      const sh = parseInt(startHour.value), eh = parseInt(endHour.value);
+      const startAM = startAmpm.value === '오전', endAM = endAmpm.value === '오전';
+      let start = sh + (startAM ? 0 : 12);
+      let end = eh + (endAM ? 0 : 12);
+      if (end <= start) end += 24;
+
+      timeline.innerHTML = ''; slots = [];
+      let isFirst = true;
+
+      for (let i = start; i <= end; i++) {
+        const h = i % 24;
+        const ampm = h < 12 ? '오전' : '오후';
+        const hour = h === 0 ? 12 : h > 12 ? h - 12 : h;
+
+        const slot = document.createElement('div');
+        slot.className = 'slot';
+        slot.dataset.index = i;
+
+        const label = isFirst ? '<span class="label">기상</span>' : (i === end ? '<span class="label">취침</span>' : '');
+        isFirst = false;
+
+        slot.innerHTML = `
+          <div class="time">${label}<span>${ampm}</span><span>${hour}시</span></div>
+          <input type="text" placeholder="여기에 드래그" readonly />
+          <button class="strike">완료</button>
+        `;
+        timeline.appendChild(slot);
+        slots.push(slot);
+        setupSlot(slot);
+      }
+    }
+
+    function setupSlot(slot) {
+      slot.addEventListener('dblclick', handleSlotDblClick);
+      slot.addEventListener('touchend', handleTouchEnd);
+
+      const strikeBtn = slot.querySelector('.strike');
+      strikeBtn.addEventListener('click', () => {
+        slot.classList.toggle('done');
+        saveData();
+      });
+
+      ['dragover', 'dragenter'].forEach(ev => {
+        slot.addEventListener(ev, e => {
+          e.preventDefault();
+          slot.classList.add('over');
+        });
+      });
+      slot.addEventListener('dragleave', () => slot.classList.remove('over'));
+      slot.addEventListener('drop', handleDrop);
+    }
+
+    function handleDrop(e) {
+      e.preventDefault();
+      const slot = e.currentTarget;
+      slot.classList.remove('over');
+      if (!draggedItem) return;
+
+      const text = draggedItem.querySelector('.txt').textContent;
+      const type = draggedItem.dataset.type;
+      const input = slot.querySelector('input');
+      input.value = text;
+      slot.dataset.type = type;
+
+      slot.classList.remove('bd', 'highlight');
+      if (type === 'bd') slot.classList.add('bd');
+      if (type === 'core3') slot.classList.add('highlight');
+
+      draggedItem.remove();
+      saveData();
+    }
+
+    let lastTouch = 0;
+    function handleTouchEnd(e) {
+      const now = new Date().getTime();
+      if (now - lastTouch < 300) handleSlotDblClick(e);
+      lastTouch = now;
+    }
+
+    function handleSlotDblClick(e) {
+      const slot = e.currentTarget;
+      const text = slot.querySelector('input').value;
+      const type = slot.dataset.type;
+      if (!text || !type) return;
+
+      const list = type === 'bd' ? bdList : c3List;
+      const li = document.createElement('li');
+      li.className = 'item'; li.draggable = true; li.dataset.type = type;
+      li.innerHTML = `<span class="txt">${text}</span><button class="del">x</button>`;
+      list.appendChild(li);
+      setupItem(li);
+
+      slot.querySelector('input').value = '';
+      slot.classList.remove('done', 'highlight', 'bd');
+      slot.dataset.type = '';
+      saveData();
+    }
+
+    function addItem(input, list, type) {
+      const text = input.value.trim();
+      if (!text) return;
+      const li = document.createElement('li');
+      li.className = 'item'; li.draggable = true; li.dataset.type = type;
+      li.innerHTML = `<span class="txt">${text}</span><button class="del">x</button>`;
+      list.appendChild(li);
+      input.value = '';
+      setupItem(li);
+      saveData();
+    }
+
+    function setupItem(li) {
+      li.addEventListener('dragstart', e => {
+        draggedItem = li;
+        e.dataTransfer.setData('text/plain', '');
+        setTimeout(() => li.style.opacity = '0.5', 0);
+      });
+      li.addEventListener('dragend', () => {
+        setTimeout(() => {
+          if (draggedItem) draggedItem.style.opacity = '';
+          draggedItem = null;
+          document.querySelectorAll('.slot').forEach(s => s.classList.remove('over'));
+          clearInterval(autoScrollInterval);
+        }, 0);
+      });
+
+      let startX, startY;
+      li.addEventListener('touchstart', e => {
+        draggedItem = li;
+        li.style.opacity = '0.5';
+        const touch = e.touches[0];
+        startX = touch.clientX;
+        startY = touch.clientY;
+      }, { passive: true });
+
+      li.addEventListener('touchmove', e => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - startX;
+        const deltaY = touch.clientY - startY;
+        li.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+
+        const rect = li.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const target = document.elementFromPoint(centerX, centerY);
+        const slot = target ? target.closest('.slot') : null;
+
+        document.querySelectorAll('.slot').forEach(s => s.classList.remove('over'));
+        if (slot) slot.classList.add('over');
+
+        // 타임라인 컨테이너 기준 자동 스크롤
+        const scrollThreshold = 80;
+        const scrollSpeed = 15;
+        clearInterval(autoScrollInterval);
+
+        const timelineRect = timeline.getBoundingClientRect();
+        const relativeY = touch.clientY - timelineRect.top;
+
+        if (relativeY < scrollThreshold && timeline.scrollTop > 0) {
+          autoScrollInterval = setInterval(() => {
+            timeline.scrollTop = Math.max(0, timeline.scrollTop - scrollSpeed);
+          }, 16);
+        } else if (relativeY > timelineRect.height - scrollThreshold) {
+          autoScrollInterval = setInterval(() => {
+            const maxScroll = timeline.scrollHeight - timeline.clientHeight;
+            timeline.scrollTop = Math.min(maxScroll, timeline.scrollTop + scrollSpeed);
+          }, 16);
+        }
+      }, { passive: false });
+
+      li.addEventListener('touchend', () => {
+        li.style.opacity = ''; li.style.transform = '';
+        clearInterval(autoScrollInterval);
+        const overSlot = document.querySelector('.slot.over');
+        if (overSlot) {
+          const dropEvent = new Event('drop', { bubbles: true });
+          overSlot.dispatchEvent(dropEvent);
+        }
+        draggedItem = null;
+      });
+
+      li.querySelector('.del').addEventListener('click', () => { li.remove(); saveData(); });
+    }
+
+    function saveData() {
+      const data = {
+        bd: Array.from(bdList.children).map(li => ({text: li.querySelector('.txt').textContent, type: li.dataset.type})),
+        c3: Array.from(c3List.children).map(li => ({text: li.querySelector('.txt').textContent, type: li.dataset.type})),
+        timeline: slots.map(slot => ({
+          text: slot.querySelector('input').value,
+          done: slot.classList.contains('done'),
+          highlight: slot.classList.contains('highlight'),
+          bd: slot.classList.contains('bd'),
+          type: slot.dataset.type || ''
+        })),
+        startHour: startHour.value, startAmpm: startAmpm.value,
+        endHour: endHour.value, endAmpm: endAmpm.value
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function loadData() {
+      const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      (data.bd || []).forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'item'; li.draggable = true; li.dataset.type = item.type;
+        li.innerHTML = `<span class="txt">${item.text}</span><button class="del">x</button>`;
+        bdList.appendChild(li); setupItem(li);
+      });
+      (data.c3 || []).forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'item'; li.draggable = true; li.dataset.type = item.type;
+        li.innerHTML = `<span class="txt">${item.text}</span><button class="del">x</button>`;
+        c3List.appendChild(li); setupItem(li);
+      });
+      if (data.startHour) startHour.value = data.startHour;
+      if (data.startAmpm) startAmpm.value = data.startAmpm;
+      if (data.endHour) endHour.value = data.endHour;
+      if (data.endAmpm) endAmpm.value = data.endAmpm;
+      buildTimeline();
+      if (data.timeline) {
+        data.timeline.forEach((item, i) => {
+          if (slots[i]) {
+            slots[i].querySelector('input').value = item.text;
+            if (item.done) slots[i].classList.add('done');
+            if (item.highlight) slots[i].classList.add('highlight');
+            if (item.bd) slots[i].classList.add('bd');
+            slots[i].dataset.type = item.type;
+          }
+        });
+      }
+    }
+
+    // === 테마 시스템 ===
+    let themeIndex = 0;
+    const themes = [
+      { bg: '#fffaf2', btn: '#4c6ef5', date: '#1c1c1c' },
+      { bg: '#fdf2f8', btn: '#d63384', date: '#1c1c1c' },
+      { bg: '#014325', btn: '#f39c12', date: '#f1f8e9' },
+      { bg: '#1a1f2d', btn: '#5c7cfa', date: '#e0e7ff' }
+    ];
+
+    function applyTheme(index) {
+      const t = themes[index];
+      document.documentElement.style.setProperty('--bg', t.bg);
+      document.documentElement.style.setProperty('--btn-bg', t.btn);
+      document.documentElement.style.setProperty('--date-color', t.date);
+      localStorage.setItem('timebox-theme', index);
+    }
+
+    themeBtn.addEventListener('click', () => {
+      themeIndex = (themeIndex + 1) % themes.length;
+      applyTheme(themeIndex);
+    });
+
+    window.addEventListener('load', () => {
+      const saved = localStorage.getItem('timebox-theme');
+      if (saved) {
+        themeIndex = parseInt(saved);
+        applyTheme(themeIndex);
+      }
+    });
+
+    // === PDF 출력 ===
+    pdfBtn.addEventListener('click', async () => {
+      const wrap = document.querySelector('.wrap');
+      const timeline = document.getElementById('timeline');
+      const originalMaxHeight = timeline.style.maxHeight;
+      const originalOverflow = timeline.style.overflow;
+
+      timeline.style.maxHeight = 'none';
+      timeline.style.overflow = 'visible';
+      void wrap.offsetHeight;
+
+      try {
+        const currentBg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+        const canvas = await html2canvas(wrap, {
+          scale: 2, useCORS: true, backgroundColor: currentBg,
+          width: wrap.scrollWidth, height: wrap.scrollHeight,
+          windowWidth: wrap.scrollWidth, windowHeight: wrap.scrollHeight
+        });
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgWidth = 210;
+        const pageHeight = 297;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        pdf.addImage(canvas.toDataURL('image/jpeg', 0.98), 'JPEG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(canvas.toDataURL('image/jpeg', 0.98), 'JPEG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+
+        pdf.save('timebox-planner.pdf');
+      } catch (error) {
+        console.error('PDF 생성 오류:', error);
+        alert('PDF 생성 중 오류가 발생했습니다.');
+      } finally {
+        timeline.style.maxHeight = originalMaxHeight;
+        timeline.style.overflow = originalOverflow;
+      }
+    });
+
+    // === 이벤트 리스너 ===
+    bdAdd.addEventListener('click', () => addItem(bdInput, bdList, 'bd'));
+    c3Add.addEventListener('click', () => addItem(c3Input, c3List, 'core3'));
+    buildBtn.addEventListener('click', buildTimeline);
+    clearBtn.addEventListener('click', () => {
+      if (confirm('오늘 모든 데이터를 지우시겠습니까?')) {
+        localStorage.removeItem(STORAGE_KEY);
+        location.reload();
+      }
+    });
+
+    [bdInput, c3Input].forEach(input => {
+      input.addEventListener('keypress', e => {
+        if (e.key === 'Enter') {
+          const btn = input === bdInput ? bdAdd : c3Add;
+          btn.click();
+        }
+      });
+    });
+
+    initTimeSelects();
+    loadData();
+  </script>
+
+  <!-- Service Worker 등록 -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/timeboxing/service-worker.js')
+          .then(reg => console.log('✅ Service Worker 등록 성공:', reg.scope))
+          .catch(err => console.error('❌ Service Worker 등록 실패:', err));
+      });
+    }
+  </script>
+</body>
+</html>
