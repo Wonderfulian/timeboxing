@@ -473,7 +473,7 @@
         if (slot) slot.classList.add('over');
 
         // 타임라인 컨테이너 기준 자동 스크롤
-        const scrollThreshold = 100;
+        const scrollThreshold = 120;
         const scrollSpeed = 20;
         clearInterval(autoScrollInterval);
 
@@ -481,14 +481,18 @@
         const relativeY = touch.clientY - timelineRect.top;
         const maxScroll = timeline.scrollHeight - timeline.clientHeight;
 
-        // 위쪽 스크롤 (타임라인 상단 근처)
-        if (relativeY < scrollThreshold && relativeY > 0 && timeline.scrollTop > 0) {
+        console.log('relativeY:', relativeY, 'height:', timelineRect.height, 'scrollTop:', timeline.scrollTop, 'maxScroll:', maxScroll);
+
+        // 위쪽 스크롤
+        if (relativeY < scrollThreshold && timeline.scrollTop > 0) {
+          console.log('⬆️ 위로 스크롤 시작');
           autoScrollInterval = setInterval(() => {
             timeline.scrollTop = Math.max(0, timeline.scrollTop - scrollSpeed);
           }, 16);
         } 
-        // 아래쪽 스크롤 (타임라인 하단 근처)
-        else if (relativeY > timelineRect.height - scrollThreshold && relativeY < timelineRect.height && timeline.scrollTop < maxScroll) {
+        // 아래쪽 스크롤
+        else if (relativeY > timelineRect.height - scrollThreshold) {
+          console.log('⬇️ 아래로 스크롤 시작');
           autoScrollInterval = setInterval(() => {
             const newMaxScroll = timeline.scrollHeight - timeline.clientHeight;
             timeline.scrollTop = Math.min(newMaxScroll, timeline.scrollTop + scrollSpeed);
