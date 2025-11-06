@@ -181,14 +181,14 @@ font-weight: 600;
   gap: 6px;
 }
 
-.slot .time, .slot .time * {
+.slot .time, .slot .time *, .slot .time .label {
   color: var(--time-color) !important;
 }
 
 .slot .time .label { 
-  font-weight: 700; 
-  color: var(--time-color) !important; 
+  font-weight: 700;
 }
+
     .slot input {
       width: 100%;
       padding: 8px;
@@ -586,6 +586,7 @@ function applyTheme(index) {
   document.documentElement.style.setProperty('--btn-bg', t.btn);
   document.documentElement.style.setProperty('--date-color', t.date);
   document.documentElement.style.setProperty('--time-color', t.time);
+  document.documentElement.style.setProperty('--text', t.time);
   localStorage.setItem('timebox-theme', index);
 }
 
