@@ -172,16 +172,27 @@
       position: relative;
     }
 
-    .slot .time {
-      font-weight: 600;
-      font-size: 15px;
-      white-space: nowrap;
-      display: flex;
-      gap: 6px;
-    }
+.slot .time {
+  font-weight: 600;
+  font-size: 15px;
+  white-space: nowrap;
+  display: flex;
+  gap: 6px;
+}
 
-    .slot .time .label { font-weight: 700; color: var(--btn-bg) !important; }
+.slot .time .label { font-weight: 700; color: var(--btn-bg) !important; }
 
+/* Forest 테마 (bg: #014325) */
+[style*="--bg: #014325"] .slot .time,
+[style*="--bg: #014325"] .slot .time span {
+  color: #aaa !important;
+}
+
+/* Dark 테마 (bg: #1a1f2d) */
+[style*="--bg: #1a1f2d"] .slot .time,
+[style*="--bg: #1a1f2d"] .slot .time span {
+  color: #aaa !important;
+}
     .slot input {
       width: 100%;
       padding: 8px;
