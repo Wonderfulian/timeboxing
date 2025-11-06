@@ -19,7 +19,7 @@
 
   <style>
     :root {
-   --bg: #fffaf2;
+  --bg: #fffaf2;
   --text: #1c1c1c;
   --btn-bg: #4c6ef5;
   --date-color: #1c1c1c;
@@ -179,12 +179,13 @@ font-weight: 600;
   white-space: nowrap;
   display: flex;
   gap: 6px;
+}
+
+.slot .time, .slot .time * {
   color: var(--time-color) !important;
 }
 
-.slot .time span {
-  color: var(--time-color) !important;
-}
+.slot .time .label { font-weight: 700; color: var(--btn-bg) !important; }}
 
 .slot .time .label { font-weight: 700; color: var(--btn-bg) !important; }
     .slot input {
@@ -574,12 +575,12 @@ font-weight: 600;
     const themes = [
 { bg: '#fffaf2', btn: '#4c6ef5', date: '#1c1c1c', time: '#1c1c1c' },
   { bg: '#fdf2f8', btn: '#d63384', date: '#1c1c1c', time: '#1c1c1c' },
-  { bg: '#014325', btn: '#f39c12', date: '#f1f8e9', time: '#aaa' },
-  { bg: '#1a1f2d', btn: '#5c7cfa', date: '#e0e7ff', time: '#aaa' }
+  { bg: '#014325', btn: '#f39c12', date: '#f1f8e9', time: '#999' },
+  { bg: '#1a1f2d', btn: '#5c7cfa', date: '#e0e7ff', time: '#999' }
 ];
 
 function applyTheme(index) {
-const t = themes[index];
+ const t = themes[index];
   document.documentElement.style.setProperty('--bg', t.bg);
   document.documentElement.style.setProperty('--btn-bg', t.btn);
   document.documentElement.style.setProperty('--date-color', t.date);
