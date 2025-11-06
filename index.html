@@ -27,6 +27,7 @@
       --bd-color: #f0f0f0;
       --border: #dee2e6;
       --radius: 14px;
+      --time-text: #1c1c1c;
     }
 
     * {
@@ -173,26 +174,19 @@
     }
 
 .slot .time {
-  font-weight: 600;
+ ont-weight: 600;
   font-size: 15px;
   white-space: nowrap;
   display: flex;
   gap: 6px;
+  color: var(--time-text) !important;
+}
+
+.slot .time span {
+  color: var(--time-text) !important;
 }
 
 .slot .time .label { font-weight: 700; color: var(--btn-bg) !important; }
-
-/* Forest 테마 (bg: #014325) */
-[style*="--bg: #014325"] .slot .time,
-[style*="--bg: #014325"] .slot .time span {
-  color: #aaa !important;
-}
-
-/* Dark 테마 (bg: #1a1f2d) */
-[style*="--bg: #1a1f2d"] .slot .time,
-[style*="--bg: #1a1f2d"] .slot .time span {
-  color: #aaa !important;
-}
     .slot input {
       width: 100%;
       padding: 8px;
@@ -578,19 +572,20 @@
     // === 테마 시스템 ===
     let themeIndex = 0;
     const themes = [
-      { bg: '#fffaf2', btn: '#4c6ef5', date: '#1c1c1c' },
-      { bg: '#fdf2f8', btn: '#d63384', date: '#1c1c1c' },
-      { bg: '#014325', btn: '#f39c12', date: '#f1f8e9' },
-      { bg: '#1a1f2d', btn: '#5c7cfa', date: '#e0e7ff' }
-    ];
+ { bg: '#fffaf2', btn: '#4c6ef5', date: '#1c1c1c', time: '#1c1c1c' },
+  { bg: '#fdf2f8', btn: '#d63384', date: '#1c1c1c', time: '#1c1c1c' },
+  { bg: '#014325', btn: '#f39c12', date: '#f1f8e9', time: '#aaa' },
+  { bg: '#1a1f2d', btn: '#5c7cfa', date: '#e0e7ff', time: '#aaa' }
+];
 
     function applyTheme(index) {
-      const t = themes[index];
-      document.documentElement.style.setProperty('--bg', t.bg);
-      document.documentElement.style.setProperty('--btn-bg', t.btn);
-      document.documentElement.style.setProperty('--date-color', t.date);
-      localStorage.setItem('timebox-theme', index);
-    }
+const t = themes[index];
+  document.documentElement.style.setProperty('--bg', t.bg);
+  document.documentElement.style.setProperty('--btn-bg', t.btn);
+  document.documentElement.style.setProperty('--date-color', t.date);
+  document.documentElement.style.setProperty('--time-text', t.time);
+  localStorage.setItem('timebox-theme', index);
+}
 
     themeBtn.addEventListener('click', () => {
       themeIndex = (themeIndex + 1) % themes.length;
